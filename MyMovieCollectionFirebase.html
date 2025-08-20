@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Movie Collection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to use Inter font
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        
+        /* CSS to maintain a 2:3 aspect ratio for movie posters */
+        .poster-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 150%;
+            overflow: hidden;
+        }
+        .poster-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <main class="max-w-7xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">My Movie Collection</h1>
+
+        <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
+            
+            <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
+                    <select id="sort-by" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <option value="title" selected>Title</option>
+                        <option value="year">Year</option>
+                        <option value="tomatometer">Tomatometer</option>
+                        <option value="audienceScore">Audience Score</option>
+                        <option value="imdb">IMDb Score</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
+                    <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                        <option value="all">All</option>
+                        <option value="4K Ultra HD">4K Ultra HD</option>
+                        <option value="Blu-Ray">Blu-Ray</option>
+                        <option value="DVD">DVD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
+                <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
+                <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
+                <button data-view="grid-3" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">3</button>
+                <button data-view="grid-4" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">4</button>
+                <button data-view="grid-5" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">5</button>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
+                <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                    <span id="sort-order-text">Sort Ascending</span>
+                </button>
+                <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
+                    Reset
+                </button>
+            </div>
+            
+        </div>
+        
+        <div id="status-indicator" class="bg-white p-4 rounded-xl shadow-md text-gray-700 text-center mb-6">
+            Loading movie data...
+        </div>
+        
+        <div class="flex justify-center mb-6">
+            <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
+        </div>
+
+        <div id="movies-container" class="grid gap-6">
+            </div>
+    </main>
+
+    <div id="movie-modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="movie-modal" class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md transform scale-95 transition-all duration-300">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 mb-4">Add New Movie</h2>
+            <form id="movie-form" class="space-y-4">
+                <div>
+                    <label for="movie-title" class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" id="movie-title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="movie-year" class="block text-sm font-medium text-gray-700">Year</label>
+                    <input type="number" id="movie-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="movie-tomatometer" class="block text-sm font-medium text-gray-700">Tomatometer (%)</label>
+                    <input type="number" id="movie-tomatometer" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" min="0" max="100">
+                </div>
+                <div>
+                    <label for="movie-audience-score" class="block text-sm font-medium text-gray-700">Audience Score (%)</label>
+                    <input type="number" id="movie-audience-score" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" min="0" max="100">
+                </div>
+                <div>
+                    <label for="movie-imdb" class="block text-sm font-medium text-gray-700">IMDb Score (/10)</label>
+                    <input type="number" id="movie-imdb" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" step="0.1" min="0" max="10">
+                </div>
+                <div>
+                    <label for="movie-media" class="block text-sm font-medium text-gray-700">Media Type</label>
+                    <select id="movie-media" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="4K Ultra HD">4K Ultra HD</option>
+                        <option value="Blu-Ray">Blu-Ray</option>
+                        <option value="DVD">DVD</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="movie-image-url" class="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
+                    <input type="url" id="movie-image-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" id="cancel-modal-btn" class="px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                    <button type="submit" id="save-movie-btn" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Add Movie</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the Firebase SDKs from a CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+        // IMPORTANT: For local development, hardcode your Firebase config.
+        // Replace this with your actual configuration.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBf9ZHgLHkIIIH9-C9etHGMf8xTno2K9u8",
+            authDomain: "my-movie-collection-1ed74.firebaseapp.com",
+            projectId: "my-movie-collection-1ed74",
+            storageBucket: "my-movie-collection-1ed74.firebasestorage.app",
+            messagingSenderId: "513133972702",
+            appId: "1:513133972702:web:f0d4cfbb018f9e815a864f",
+            measurementId: "G-S41SMHF1WD"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let moviesCollectionRef;
+        let allMovies = [];
+        let isAscending = true;
+        let isManualViewSelected = false;
+        let currentEditingMovieId = null;
+        
+        // The default movie data to load if the database is empty
+        const defaultMoviesData = `[
+            {
+                "title": "10 Cloverfield Lane",
+                "year": 2016,
+                "tomatometer": 91,
+                "audienceScore": 79,
+                "imdb": 7.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane"
+            },
+            {
+                "title": "American Sniper",
+                "year": 2014,
+                "tomatometer": 34,
+                "audienceScore": 85,
+                "imdb": 7.3,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper"
+            },
+            {
+                "title": "Back to the Future",
+                "year": 1985,
+                "tomatometer": 93,
+                "audienceScore": 95,
+                "imdb": 8.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Back+to+the+Future"
+            },
+            {
+                "title": "Back to the Future Part II",
+                "year": 1989,
+                "tomatometer": 63,
+                "audienceScore": 86,
+                "imdb": 7.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Back+to+the+Future+Part+II"
+            },
+            {
+                "title": "Back to the Future Part III",
+                "year": 1990,
+                "tomatometer": 79,
+                "audienceScore": 78,
+                "imdb": 7.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Back+to+the+Future+Part+III"
+            },
+            {
+                "title": "Batman",
+                "year": 1989,
+                "tomatometer": 77,
+                "audienceScore": 84,
+                "imdb": 7.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman"
+            },
+            {
+                "title": "Batman & Robin",
+                "year": 1997,
+                "tomatometer": 11,
+                "audienceScore": 16,
+                "imdb": 3.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+&+Robin"
+            },
+            {
+                "title": "Batman Begins",
+                "year": 2005,
+                "tomatometer": 84,
+                "audienceScore": 89,
+                "imdb": 8.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+Begins"
+            },
+            {
+                "title": "Batman Forever",
+                "year": 1995,
+                "tomatometer": 41,
+                "audienceScore": 32,
+                "imdb": 5.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+Forever"
+            },
+            {
+                "title": "Batman Returns",
+                "year": 1992,
+                "tomatometer": 82,
+                "audienceScore": 73,
+                "imdb": 7.1,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+Returns"
+            },
+            {
+                "title": "Casino",
+                "year": 1995,
+                "tomatometer": 88,
+                "audienceScore": 92,
+                "imdb": 8.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Casino"
+            },
+            {
+                "title": "Casino Royale",
+                "year": 2006,
+                "tomatometer": 94,
+                "audienceScore": 85,
+                "imdb": 8.0,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Casino+Royale"
+            },
+            {
+                "title": "Chernobyl",
+                "year": 2019,
+                "tomatometer": 96,
+                "audienceScore": 98,
+                "imdb": 9.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Chernobyl"
+            },
+            {
+                "title": "Cloverfield",
+                "year": 2008,
+                "tomatometer": 79,
+                "audienceScore": 68,
+                "imdb": 7.0,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Cloverfield"
+            },
+            {
+                "title": "Contagion",
+                "year": 2011,
+                "tomatometer": 63,
+                "audienceScore": 63,
+                "imdb": 6.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Contagion"
+            },
+            {
+                "title": "Dune (2021)",
+                "year": 2021,
+                "tomatometer": 83,
+                "audienceScore": 90,
+                "imdb": 8.0,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Dune"
+            },
+            {
+                "title": "Dune: Part Two (2024)",
+                "year": 2024,
+                "tomatometer": 91,
+                "audienceScore": 96,
+                "imdb": 8.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Dune+Part+Two"
+            },
+            {
+                "title": "Escape From LA",
+                "year": 1996,
+                "tomatometer": 53,
+                "audienceScore": 35,
+                "imdb": 5.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Escape+From+LA"
+            },
+            {
+                "title": "Event Horizon",
+                "year": 1997,
+                "tomatometer": 36,
+                "audienceScore": 68,
+                "imdb": 6.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Event+Horizon"
+            },
+            {
+                "title": "Ex Machina",
+                "year": 2014,
+                "tomatometer": 92,
+                "audienceScore": 86,
+                "imdb": 7.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Ex+Machina"
+            },
+            {
+                "title": "Forrest Gump",
+                "year": 1994,
+                "tomatometer": 71,
+                "audienceScore": 95,
+                "imdb": 8.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Forrest+Gump"
+            },
+            {
+                "title": "Galaxy Quest",
+                "year": 1999,
+                "tomatometer": 90,
+                "audienceScore": 79,
+                "imdb": 7.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Galaxy+Quest"
+            },
+            {
+                "title": "Get Out",
+                "year": 2017,
+                "tomatometer": 98,
+                "audienceScore": 86,
+                "imdb": 7.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Get+Out"
+            },
+            {
+                "title": "Hot Fuzz",
+                "year": 2007,
+                "tomatometer": 91,
+                "audienceScore": 93,
+                "imdb": 7.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Hot+Fuzz"
+            },
+            {
+                "title": "I Am Legend",
+                "year": 2007,
+                "tomatometer": 68,
+                "audienceScore": 68,
+                "imdb": 7.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=I+Am+Legend"
+            },
+            {
+                "title": "Inglorious Basterds",
+                "year": 2009,
+                "tomatometer": 89,
+                "audienceScore": 90,
+                "imdb": 8.3,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Inglorious+Basterds"
+            },
+            {
+                "title": "Interstellar",
+                "year": 2014,
+                "tomatometer": 74,
+                "audienceScore": 86,
+                "imdb": 8.6,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Interstellar"
+            },
+            {
+                "title": "Jason Bourne",
+                "year": 2016,
+                "tomatometer": 55,
+                "audienceScore": 57,
+                "imdb": 6.6,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Jason+Bourne"
+            },
+            {
+                "title": "Last Action Hero",
+                "year": 1993,
+                "tomatometer": 31,
+                "audienceScore": 48,
+                "imdb": 6.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Last+Action+Hero"
+            },
+            {
+                "title": "Law Abiding Citizen",
+                "year": 2009,
+                "tomatometer": 26,
+                "audienceScore": 75,
+                "imdb": 7.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Law+Abiding+Citizen"
+            },
+            {
+                "title": "Matrix",
+                "year": 1999,
+                "tomatometer": 88,
+                "audienceScore": 85,
+                "imdb": 8.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Matrix"
+            },
+            {
+                "title": "Matrix Reloaded",
+                "year": 2003,
+                "tomatometer": 73,
+                "audienceScore": 65,
+                "imdb": 6.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Matrix+Reloaded"
+            },
+            {
+                "title": "Matrix Revolutions",
+                "year": 2003,
+                "tomatometer": 35,
+                "audienceScore": 53,
+                "imdb": 6.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Matrix+Revolutions"
+            },
+            {
+                "title": "No Time to Die",
+                "year": 2021,
+                "tomatometer": 83,
+                "audienceScore": 81,
+                "imdb": 7.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=No+Time+to+Die"
+            },
+            {
+                "title": "Oppenheimer",
+                "year": 2023,
+                "tomatometer": 93,
+                "audienceScore": 91,
+                "imdb": 8.6,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Oppenheimer"
+            },
+            {
+                "title": "Parasite",
+                "year": 2019,
+                "tomatometer": 98,
+                "audienceScore": 90,
+                "imdb": 8.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Parasite"
+            },
+            {
+                "title": "Quantum of Solace",
+                "year": 2008,
+                "tomatometer": 48,
+                "audienceScore": 64,
+                "imdb": 6.6,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Quantum+of+Solace"
+            },
+            {
+                "title": "Shaun of the Dead",
+                "year": 2004,
+                "tomatometer": 92,
+                "audienceScore": 91,
+                "imdb": 7.9,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Shaun+of+the+Dead"
+            },
+            {
+                "title": "Skyfall",
+                "year": 2012,
+                "tomatometer": 92,
+                "audienceScore": 89,
+                "imdb": 7.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Skyfall"
+            },
+            {
+                "title": "Spectre",
+                "year": 2015,
+                "tomatometer": 63,
+                "audienceScore": 71,
+                "imdb": 6.8,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Spectre"
+            },
+            {
+                "title": "Split",
+                "year": 2016,
+                "tomatometer": 79,
+                "audienceScore": 79,
+                "imdb": 7.3,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Split"
+            },
+            {
+                "title": "Starship Troopers",
+                "year": 1997,
+                "tomatometer": 72,
+                "audienceScore": 70,
+                "imdb": 7.3,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Starship+Troopers"
+            },
+            {
+                "title": "Terminator 2 Judgement Day",
+                "year": 1991,
+                "tomatometer": 93,
+                "audienceScore": 94,
+                "imdb": 8.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Terminator+2+Judgement+Day"
+            },
+            {
+                "title": "The Bourne Identity",
+                "year": 2002,
+                "tomatometer": 84,
+                "audienceScore": 88,
+                "imdb": 7.9,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Bourne+Identity"
+            },
+            {
+                "title": "The Bourne Legacy",
+                "year": 2012,
+                "tomatometer": 56,
+                "audienceScore": 54,
+                "imdb": 6.6,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Bourne+Legacy"
+            },
+            {
+                "title": "The Bourne Supremacy",
+                "year": 2004,
+                "tomatometer": 82,
+                "audienceScore": 84,
+                "imdb": 7.7,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Bourne+Supremacy"
+            },
+            {
+                "title": "The Bourne Ultimatum",
+                "year": 2007,
+                "tomatometer": 92,
+                "audienceScore": 91,
+                "imdb": 8.0,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Bourne+Ultimatum"
+            },
+            {
+                "title": "The Dark Knight",
+                "year": 2008,
+                "tomatometer": 94,
+                "audienceScore": 94,
+                "imdb": 9.0,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight"
+            },
+            {
+                "title": "The Dark Knight Rises",
+                "year": 2012,
+                "tomatometer": 87,
+                "audienceScore": 86,
+                "imdb": 8.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight+Rises"
+            },
+            {
+                "title": "The Lion King",
+                "year": 1994,
+                "tomatometer": 93,
+                "audienceScore": 93,
+                "imdb": 8.5,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Lion+King"
+            },
+            {
+                "title": "The Shawshank Redemption",
+                "year": 1994,
+                "tomatometer": 91,
+                "audienceScore": 96,
+                "imdb": 9.3,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Shawshank+Redemption"
+            },
+            {
+                "title": "The Terminator",
+                "year": 1984,
+                "tomatometer": 100,
+                "audienceScore": 88,
+                "imdb": 8.1,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Terminator"
+            },
+            {
+                "title": "The Wolf of Wallstreet",
+                "year": 2013,
+                "tomatometer": 80,
+                "audienceScore": 84,
+                "imdb": 8.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Wolf+of+Wallstreet"
+            },
+            {
+                "title": "Twister",
+                "year": 1996,
+                "tomatometer": 60,
+                "audienceScore": 63,
+                "imdb": 6.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Twister"
+            },
+            {
+                "title": "Uncut Gems",
+                "year": 2019,
+                "tomatometer": 91,
+                "audienceScore": 52,
+                "imdb": 7.4,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Uncut+Gems"
+            },
+            {
+                "title": "V for Vendetta",
+                "year": 2006,
+                "tomatometer": 73,
+                "audienceScore": 90,
+                "imdb": 8.1,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=V+for+Vendetta"
+            },
+            {
+                "title": "Vanilla Sky",
+                "year": 2001,
+                "tomatometer": 42,
+                "audienceScore": 68,
+                "imdb": 6.9,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Vanilla+Sky"
+            },
+            {
+                "title": "Waterworld",
+                "year": 1995,
+                "tomatometer": 43,
+                "audienceScore": 48,
+                "imdb": 6.2,
+                "media": "4K Ultra HD",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Waterworld"
+            },
+            {
+                "title": "40 Year-Old Virgin",
+                "year": 2005,
+                "tomatometer": 85,
+                "audienceScore": 80,
+                "imdb": 7.1,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=40+Year-Old+Virgin"
+            },
+            {
+                "title": "A Quiet Place",
+                "year": 2018,
+                "tomatometer": 96,
+                "audienceScore": 82,
+                "imdb": 7.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=A+Quiet+Place"
+            },
+            {
+                "title": "Along Came Polly",
+                "year": 2004,
+                "tomatometer": 19,
+                "audienceScore": 54,
+                "imdb": 5.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Along+Came+Polly"
+            },
+            {
+                "title": "American Beauty",
+                "year": 1999,
+                "tomatometer": 87,
+                "audienceScore": 93,
+                "imdb": 8.4,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Beauty"
+            },
+            {
+                "title": "Apollo 13",
+                "year": 1995,
+                "tomatometer": 96,
+                "audienceScore": 95,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Apollo+13"
+            },
+            {
+                "title": "Boiler Room",
+                "year": 2000,
+                "tomatometer": 52,
+                "audienceScore": 83,
+                "imdb": 7.0,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Boiler+Room"
+            },
+            {
+                "title": "Coming to America",
+                "year": 1988,
+                "tomatometer": 73,
+                "audienceScore": 71,
+                "imdb": 7.1,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Coming+to+America"
+            },
+            {
+                "title": "Coneheads",
+                "year": 1993,
+                "tomatometer": 35,
+                "audienceScore": 58,
+                "imdb": 5.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Coneheads"
+            },
+            {
+                "title": "Contact",
+                "year": 1997,
+                "tomatometer": 69,
+                "audienceScore": 83,
+                "imdb": 7.4,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Contact"
+            },
+            {
+                "title": "Crazy Stupid Love",
+                "year": 2011,
+                "tomatometer": 78,
+                "audienceScore": 82,
+                "imdb": 7.2,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Crazy+Stupid+Love"
+            },
+            {
+                "title": "Demolition Man",
+                "year": 1993,
+                "tomatometer": 59,
+                "audienceScore": 75,
+                "imdb": 6.7,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Demolition+Man"
+            },
+            {
+                "title": "Die Hard",
+                "year": 1988,
+                "tomatometer": 97,
+                "audienceScore": 93,
+                "imdb": 8.2,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Die+Hard"
+            },
+            {
+                "title": "Die Hard 2",
+                "year": 1990,
+                "tomatometer": 67,
+                "audienceScore": 70,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Die+Hard+2"
+            },
+            {
+                "title": "Die Hard with a Vengeance",
+                "year": 1995,
+                "tomatometer": 58,
+                "audienceScore": 71,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Die+Hard+with+a+Vengeance"
+            },
+            {
+                "title": "District 9",
+                "year": 2009,
+                "tomatometer": 90,
+                "audienceScore": 88,
+                "imdb": 7.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=District+9"
+            },
+            {
+                "title": "Dumb & Dumber",
+                "year": 1994,
+                "tomatometer": 67,
+                "audienceScore": 68,
+                "imdb": 7.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Dumb+&+Dumber"
+            },
+            {
+                "title": "Elysium",
+                "year": 2013,
+                "tomatometer": 67,
+                "audienceScore": 57,
+                "imdb": 6.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Elysium"
+            },
+            {
+                "title": "End of Watch",
+                "year": 2012,
+                "tomatometer": 67,
+                "audienceScore": 83,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=End+of+Watch"
+            },
+            {
+                "title": "Face Off",
+                "year": 1997,
+                "tomatometer": 92,
+                "audienceScore": 86,
+                "imdb": 7.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Face+Off"
+            },
+            {
+                "title": "Flight of the Phoenix",
+                "year": 2004,
+                "tomatometer": 33,
+                "audienceScore": 69,
+                "imdb": 6.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Flight+of+the+Phoenix"
+            },
+            {
+                "title": "Forgetting Sarah Marshall",
+                "year": 2008,
+                "tomatometer": 85,
+                "audienceScore": 78,
+                "imdb": 7.1,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Forgetting+Sarah+Marshall"
+            },
+            {
+                "title": "Gladiator",
+                "year": 2000,
+                "tomatometer": 76,
+                "audienceScore": 86,
+                "imdb": 8.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Gladiator"
+            },
+            {
+                "title": "GoodFellas",
+                "year": 1990,
+                "tomatometer": 96,
+                "audienceScore": 98,
+                "imdb": 8.7,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=GoodFellas"
+            },
+            {
+                "title": "I Now Pronounce You Chuck & Larry",
+                "year": 2007,
+                "tomatometer": 14,
+                "audienceScore": 34,
+                "imdb": 5.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=I+Now+Pronounce+You+Chuck+&+Larry"
+            },
+            {
+                "title": "Inception",
+                "year": 2010,
+                "tomatometer": 87,
+                "audienceScore": 91,
+                "imdb": 8.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Inception"
+            },
+            {
+                "title": "Inside Man",
+                "year": 2006,
+                "tomatometer": 86,
+                "audienceScore": 85,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Inside+Man"
+            },
+            {
+                "title": "Kingpin",
+                "year": 1996,
+                "tomatometer": 49,
+                "audienceScore": 78,
+                "imdb": 6.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Kingpin"
+            },
+            {
+                "title": "Knocked Up",
+                "year": 2007,
+                "tomatometer": 90,
+                "audienceScore": 75,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Knocked+Up"
+            },
+            {
+                "title": "Life",
+                "year": 1999,
+                "tomatometer": 56,
+                "audienceScore": 86,
+                "imdb": 7.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Life"
+            },
+            {
+                "title": "Live Free or Die Hard",
+                "year": 2007,
+                "tomatometer": 52,
+                "audienceScore": 55,
+                "imdb": 6.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Live+Free+or+Die+Hard"
+            },
+            {
+                "title": "Mallrats",
+                "year": 1995,
+                "tomatometer": 57,
+                "audienceScore": 74,
+                "imdb": 7.0,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Mallrats"
+            },
+            {
+                "title": "Office Space",
+                "year": 1999,
+                "tomatometer": 81,
+                "audienceScore": 93,
+                "imdb": 7.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Office+Space"
+            },
+            {
+                "title": "Reservoir Dogs",
+                "year": 1992,
+                "tomatometer": 90,
+                "audienceScore": 93,
+                "imdb": 8.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Reservoir+Dogs"
+            },
+            {
+                "title": "Rounders",
+                "year": 1998,
+                "tomatometer": 65,
+                "audienceScore": 88,
+                "imdb": 7.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Rounders"
+            },
+            {
+                "title": "S.W.A.T.",
+                "year": 2003,
+                "tomatometer": 38,
+                "audienceScore": 61,
+                "imdb": 5.4,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=S.W.A.T."
+            },
+            {
+                "title": "Snake Eyes",
+                "year": 1998,
+                "tomatometer": 43,
+                "audienceScore": 42,
+                "imdb": 6.1,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Snake+Eyes"
+            },
+            {
+                "title": "Speed",
+                "year": 1994,
+                "tomatometer": 94,
+                "audienceScore": 89,
+                "imdb": 7.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Speed"
+            },
+            {
+                "title": "Spider-Man 3",
+                "year": 2007,
+                "tomatometer": 63,
+                "audienceScore": 51,
+                "imdb": 6.2,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Spider-Man+3"
+            },
+            {
+                "title": "Swordfish",
+                "year": 2001,
+                "tomatometer": 25,
+                "audienceScore": 54,
+                "imdb": 5.4,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Swordfish"
+            },
+            {
+                "title": "Ted",
+                "year": 2012,
+                "tomatometer": 68,
+                "audienceScore": 64,
+                "imdb": 6.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Ted"
+            },
+            {
+                "title": "Ted 2",
+                "year": 2015,
+                "tomatometer": 44,
+                "audienceScore": 48,
+                "imdb": 5.0,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Ted+2"
+            },
+            {
+                "title": "The Departed",
+                "year": 2006,
+                "tomatometer": 91,
+                "audienceScore": 94,
+                "imdb": 8.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Departed"
+            },
+            {
+                "title": "The Devil's Rejects",
+                "year": 2005,
+                "tomatometer": 40,
+                "audienceScore": 68,
+                "imdb": 6.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Devil's+Rejects"
+            },
+            {
+                "title": "The Fifth Element",
+                "year": 1997,
+                "tomatometer": 71,
+                "audienceScore": 85,
+                "imdb": 7.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Fifth+Element"
+            },
+            {
+                "title": "The Fugitive",
+                "year": 1993,
+                "tomatometer": 96,
+                "audienceScore": 90,
+                "imdb": 7.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Fugitive"
+            },
+            {
+                "title": "The Hateful Eight",
+                "year": 2015,
+                "tomatometer": 74,
+                "audienceScore": 78,
+                "imdb": 7.8,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Hateful+Eight"
+            },
+            {
+                "title": "The Mask",
+                "year": 1994,
+                "tomatometer": 77,
+                "audienceScore": 79,
+                "imdb": 6.9,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Mask"
+            },
+            {
+                "title": "The Prestige",
+                "year": 2006,
+                "tomatometer": 76,
+                "audienceScore": 92,
+                "imdb": 8.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Prestige"
+            },
+            {
+                "title": "The Usual Suspects",
+                "year": 1995,
+                "tomatometer": 88,
+                "audienceScore": 95,
+                "imdb": 8.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Usual+Suspects"
+            },
+            {
+                "title": "The Wedding Singer",
+                "year": 1998,
+                "tomatometer": 70,
+                "audienceScore": 79,
+                "imdb": 6.6,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Wedding+Singer"
+            },
+            {
+                "title": "Total Recall",
+                "year": 1990,
+                "tomatometer": 83,
+                "audienceScore": 84,
+                "imdb": 7.5,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Total+Recall"
+            },
+            {
+                "title": "Vegas Vacation",
+                "year": 1997,
+                "tomatometer": 26,
+                "audienceScore": 65,
+                "imdb": 6.3,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Vegas+Vacation"
+            },
+            {
+                "title": "Waiting",
+                "year": 2005,
+                "tomatometer": 30,
+                "audienceScore": 80,
+                "imdb": 7.1,
+                "media": "Blu-Ray",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Waiting"
+            },
+            {
+                "title": "13 Tzameti",
+                "year": 2005,
+                "tomatometer": 83,
+                "audienceScore": 85,
+                "imdb": 7.9,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=13+Tzameti"
+            },
+            {
+                "title": "2 Fast 2 Furious",
+                "year": 2003,
+                "tomatometer": 36,
+                "audienceScore": 55,
+                "imdb": 5.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=2+Fast+2+Furious"
+            },
+            {
+                "title": "40 Days and 40 Nights",
+                "year": 2002,
+                "tomatometer": 42,
+                "audienceScore": 57,
+                "imdb": 5.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=40+Days+and+40+Nights"
+            },
+            {
+                "title": "8 Mile",
+                "year": 2002,
+                "tomatometer": 75,
+                "audienceScore": 86,
+                "imdb": 7.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=8+Mile"
+            },
+            {
+                "title": "American Pie 2",
+                "year": 2001,
+                "tomatometer": 44,
+                "audienceScore": 59,
+                "imdb": 5.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=American+Pie+2"
+            },
+            {
+                "title": "American Wedding",
+                "year": 2003,
+                "tomatometer": 51,
+                "audienceScore": 63,
+                "imdb": 6.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=American+Wedding"
+            },
+            {
+                "title": "Anger Management",
+                "year": 2003,
+                "tomatometer": 38,
+                "audienceScore": 58,
+                "imdb": 5.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Anger+Management"
+            },
+            {
+                "title": "Bad Boys",
+                "year": 1995,
+                "tomatometer": 43,
+                "audienceScore": 73,
+                "imdb": 6.9,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Bad+Boys"
+            },
+            {
+                "title": "Bait",
+                "year": 2000,
+                "tomatometer": 17,
+                "audienceScore": 46,
+                "imdb": 5.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Bait"
+            },
+            {
+                "title": "Basic Instinct",
+                "year": 1992,
+                "tomatometer": 53,
+                "audienceScore": 60,
+                "imdb": 6.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Basic+Instinct"
+            },
+            {
+                "title": "Billy the Kid",
+                "year": 1941,
+                "tomatometer": 0,
+                "audienceScore": 0,
+                "imdb": 6.7,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Billy+the+Kid"
+            },
+            {
+                "title": "Bridesmaids",
+                "year": 2011,
+                "tomatometer": 90,
+                "audienceScore": 83,
+                "imdb": 6.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Bridesmaids"
+            },
+            {
+                "title": "Bruce Almighty",
+                "year": 2003,
+                "tomatometer": 48,
+                "audienceScore": 67,
+                "imdb": 6.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Bruce+Almighty"
+            },
+            {
+                "title": "Cast Away",
+                "year": 2000,
+                "tomatometer": 90,
+                "audienceScore": 84,
+                "imdb": 7.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Cast+Away"
+            },
+            {
+                "title": "Catch Me If You Can",
+                "year": 2002,
+                "tomatometer": 81,
+                "audienceScore": 88,
+                "imdb": 7.7,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Catch+Me+If+You+Can"
+            },
+            {
+                "title": "Chicago Fire S2",
+                "year": 2013,
+                "tomatometer": 0,
+                "audienceScore": 88,
+                "imdb": 8.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Chicago+Fire+S2"
+            },
+            {
+                "title": "Chicago Fire S3",
+                "year": 2014,
+                "tomatometer": 0,
+                "audienceScore": 88,
+                "imdb": 8.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Chicago+Fire+S3"
+            },
+            {
+                "title": "Coyote Ugly",
+                "year": 2000,
+                "tomatometer": 21,
+                "audienceScore": 58,
+                "imdb": 5.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Coyote+Ugly"
+            },
+            {
+                "title": "Deuce Bigalow: Male Gigolo",
+                "year": 1999,
+                "tomatometer": 11,
+                "audienceScore": 25,
+                "imdb": 4.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Deuce+Bigalow"
+            },
+            {
+                "title": "Die Another Day",
+                "year": 2002,
+                "tomatometer": 57,
+                "audienceScore": 53,
+                "imdb": 6.1,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Die+Another+Day"
+            },
+            {
+                "title": "Empire",
+                "year": 2015,
+                "tomatometer": 90,
+                "audienceScore": 94,
+                "imdb": 8.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Empire"
+            },
+            {
+                "title": "Farce of the Penguins",
+                "year": 2006,
+                "tomatometer": 20,
+                "audienceScore": 34,
+                "imdb": 4.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Farce+of+the+Penguins"
+            },
+            {
+                "title": "Five Fingers",
+                "year": 2006,
+                "tomatometer": 50,
+                "audienceScore": 67,
+                "imdb": 6.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Five+Fingers"
+            },
+            {
+                "title": "Gladiator",
+                "year": 2000,
+                "tomatometer": 76,
+                "audienceScore": 86,
+                "imdb": 8.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Gladiator"
+            },
+            {
+                "title": "Goldmember",
+                "year": 2002,
+                "tomatometer": 22,
+                "audienceScore": 40,
+                "imdb": 5.1,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Goldmember"
+            },
+            {
+                "title": "Gone in 60 Seconds",
+                "year": 2000,
+                "tomatometer": 23,
+                "audienceScore": 69,
+                "imdb": 6.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Gone+in+60+Seconds"
+            },
+            {
+                "title": "It's Pimpin' Pimpin'",
+                "year": 2005,
+                "tomatometer": 0,
+                "audienceScore": 85,
+                "imdb": 1.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=It's+Pimpin'+Pimpin'"
+            },
+            {
+                "title": "Jay and Silent Bob...",
+                "year": 2001,
+                "tomatometer": 52,
+                "audienceScore": 68,
+                "imdb": 6.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Jay+and+Silent+Bob"
+            },
+            {
+                "title": "Loser",
+                "year": 2000,
+                "tomatometer": 39,
+                "audienceScore": 58,
+                "imdb": 5.3,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Loser"
+            },
+            {
+                "title": "Lost",
+                "year": 2004,
+                "tomatometer": 86,
+                "audienceScore": 90,
+                "imdb": 8.3,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Lost"
+            },
+            {
+                "title": "Mean Girls",
+                "year": 2004,
+                "tomatometer": 83,
+                "audienceScore": 82,
+                "imdb": 7.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Mean+Girls"
+            },
+            {
+                "title": "Meet the Parents",
+                "year": 2000,
+                "tomatometer": 84,
+                "audienceScore": 78,
+                "imdb": 7.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Meet+the+Parents"
+            },
+            {
+                "title": "Memento",
+                "year": 2000,
+                "tomatometer": 92,
+                "audienceScore": 94,
+                "imdb": 8.4,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Memento"
+            },
+            {
+                "title": "Minority Report",
+                "year": 2002,
+                "tomatometer": 90,
+                "audienceScore": 82,
+                "imdb": 7.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Minority+Report"
+            },
+            {
+                "title": "My Best Friend's Girl",
+                "year": 2008,
+                "tomatometer": 21,
+                "audienceScore": 53,
+                "imdb": 5.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=My+Best+Friend's+Girl"
+            },
+            {
+                "title": "Nobel Son",
+                "year": 2007,
+                "tomatometer": 4,
+                "audienceScore": 29,
+                "imdb": 5.9,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Nobel+Son"
+            },
+            {
+                "title": "Ocean's Eleven",
+                "year": 2001,
+                "tomatometer": 82,
+                "audienceScore": 85,
+                "imdb": 7.7,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Ocean's+Eleven"
+            },
+            {
+                "title": "Once Upon a Time in Mexico",
+                "year": 2003,
+                "tomatometer": 68,
+                "audienceScore": 76,
+                "imdb": 7.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Once+Upon+a+Time+in+Mexico"
+            },
+            {
+                "title": "Pearl Harbor",
+                "year": 2001,
+                "tomatometer": 25,
+                "audienceScore": 58,
+                "imdb": 6.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Pearl+Harbor"
+            },
+            {
+                "title": "Pineapple Express",
+                "year": 2008,
+                "tomatometer": 68,
+                "audienceScore": 74,
+                "imdb": 6.9,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Pineapple+Express"
+            },
+            {
+                "title": "Pitch Perfect",
+                "year": 2012,
+                "tomatometer": 81,
+                "audienceScore": 80,
+                "imdb": 6.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Pitch+Perfect"
+            },
+            {
+                "title": "Road Trip",
+                "year": 2000,
+                "tomatometer": 48,
+                "audienceScore": 66,
+                "imdb": 6.4,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Road+Trip"
+            },
+            {
+                "title": "Rocky Balboa",
+                "year": 2006,
+                "tomatometer": 76,
+                "audienceScore": 72,
+                "imdb": 7.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Rocky+Balboa"
+            },
+            {
+                "title": "Rush Hour 2",
+                "year": 2001,
+                "tomatometer": 51,
+                "audienceScore": 68,
+                "imdb": 6.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Rush+Hour+2"
+            },
+            {
+                "title": "Scream 3",
+                "year": 2000,
+                "tomatometer": 39,
+                "audienceScore": 54,
+                "imdb": 5.5,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Scream+3"
+            },
+            {
+                "title": "Seabiscuit",
+                "year": 2003,
+                "tomatometer": 77,
+                "audienceScore": 81,
+                "imdb": 7.3,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Seabiscuit"
+            },
+            {
+                "title": "The Amateurs",
+                "year": 2005,
+                "tomatometer": 17,
+                "audienceScore": 42,
+                "imdb": 5.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Amateurs"
+            },
+            {
+                "title": "The City of Violence",
+                "year": 2006,
+                "tomatometer": 100,
+                "audienceScore": 88,
+                "imdb": 7.3,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+City+of+Violence"
+            },
+            {
+                "title": "The Devil's Tomb",
+                "year": 2009,
+                "tomatometer": 11,
+                "audienceScore": 26,
+                "imdb": 4.7,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Devil's+Tomb"
+            },
+            {
+                "title": "The Last Samurai",
+                "year": 2003,
+                "tomatometer": 72,
+                "audienceScore": 79,
+                "imdb": 7.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Last+Samurai"
+            },
+            {
+                "title": "The Little Mermaid",
+                "year": 1989,
+                "tomatometer": 93,
+                "audienceScore": 92,
+                "imdb": 7.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Little+Mermaid"
+            },
+            {
+                "title": "The Office (US)",
+                "year": 2005,
+                "tomatometer": 81,
+                "audienceScore": 93,
+                "imdb": 8.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Office+(US)"
+            },
+            {
+                "title": "The Ruins",
+                "year": 2008,
+                "tomatometer": 49,
+                "audienceScore": 46,
+                "imdb": 5.9,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Ruins"
+            },
+            {
+                "title": "The Score",
+                "year": 2001,
+                "tomatometer": 49,
+                "audienceScore": 65,
+                "imdb": 6.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Score"
+            },
+            {
+                "title": "The Talented Mr. Ripley",
+                "year": 1999,
+                "tomatometer": 84,
+                "audienceScore": 85,
+                "imdb": 7.2,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Talented+Mr.+Ripley"
+            },
+            {
+                "title": "The Wackness",
+                "year": 2008,
+                "tomatometer": 86,
+                "audienceScore": 82,
+                "imdb": 7.0,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=The+Wackness"
+            },
+            {
+                "title": "Traffic",
+                "year": 2000,
+                "tomatometer": 93,
+                "audienceScore": 87,
+                "imdb": 7.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Traffic"
+            },
+            {
+                "title": "Van Wilder",
+                "year": 2002,
+                "tomatometer": 19,
+                "audienceScore": 62,
+                "imdb": 6.6,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=Van+Wilder"
+            },
+            {
+                "title": "What Just Happened",
+                "year": 2008,
+                "tomatometer": 52,
+                "audienceScore": 56,
+                "imdb": 5.8,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=What+Just+Happened"
+            },
+            {
+                "title": "What Women Want",
+                "year": 2000,
+                "tomatometer": 52,
+                "audienceScore": 66,
+                "imdb": 6.4,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=What+Women+Want"
+            },
+            {
+                "title": "White Men Can't Jump",
+                "year": 1992,
+                "tomatometer": 77,
+                "audienceScore": 83,
+                "imdb": 7.3,
+                "media": "DVD",
+                "imageUrl": "https://placehold.co/300x400/e0e0e0/555555?text=White+Men+Can't+Jump"
+            }
+        ]`;
+        
+        // Function to create an HTML card for a single movie
+        function createMovieCard(movie) {
+            const card = document.createElement('div');
+            card.classList.add(
+                'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg',
+                'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2',
+                'relative'
+            );
+
+            // Edit button
+            const editButton = document.createElement('button');
+            editButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
+                </svg>
+            `;
+            editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200');
+            editButton.addEventListener('click', () => openModalForEdit(movie.id));
+            card.appendChild(editButton);
+
+            // Image container with aspect ratio
+            const imageContainer = document.createElement('div');
+            imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
+            const movieImage = document.createElement('img');
+            
+            // Use provided image URL or a placeholder
+            movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
+            movieImage.alt = `Poster for ${movie.title}`;
+            imageContainer.appendChild(movieImage);
+            card.appendChild(imageContainer);
+
+            // Title and Year
+            const titleHeading = document.createElement('h2');
+            titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900');
+            titleHeading.textContent = `${movie.title} (${movie.year})`;
+            card.appendChild(titleHeading);
+
+            // Scores
+            const scoresDiv = document.createElement('div');
+            scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
+            
+            // Tomatometer
+            const tomatometerSpan = document.createElement('span');
+            tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
+            scoresDiv.appendChild(tomatometerSpan);
+
+            // Audience Score
+            const audienceScoreSpan = document.createElement('span');
+            audienceScoreSpan.textContent = `🍿 Audience: ${movie.audienceScore}%`;
+            scoresDiv.appendChild(audienceScoreSpan);
+
+            // IMDb
+            const imdbSpan = document.createElement('span');
+            imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
+            scoresDiv.appendChild(imdbSpan);
+            
+            card.appendChild(scoresDiv);
+
+            // Media Type
+            const mediaDiv = document.createElement('div');
+            mediaDiv.classList.add('mt-auto', 'text-xs', 'font-medium', 'text-gray-500');
+            mediaDiv.textContent = `Media: ${movie.media}`;
+            card.appendChild(mediaDiv);
+
+            return card;
+        }
+
+        // Function to update the movie count status indicator
+        function updateStatusIndicator(movies) {
+            const indicator = document.getElementById('status-indicator');
+            
+            if (!movies || movies.length === 0) {
+                indicator.innerHTML = `Loading movie data...`;
+                return;
+            }
+            
+            const counts = movies.reduce((acc, movie) => {
+                acc[movie.media] = (acc[movie.media] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const total = movies.length;
+            let html = `<span>Total Movies: <strong>${total}</strong></span>`;
+            
+            // Dynamically build the counts for each media type
+            for (const mediaType in counts) {
+                html += ` | <span>${mediaType}: <strong>${counts[mediaType]}</strong></span>`;
+            }
+
+            indicator.innerHTML = html;
+        }
+
+        // Function to filter and sort the movies and re-render the page
+        function filterAndSortMovies() {
+            const sortBy = document.getElementById('sort-by').value;
+            const filterByMedia = document.getElementById('filter-by-media').value;
+            const moviesContainer = document.getElementById('movies-container');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            // Filter the movies
+            let filteredMovies = allMovies;
+            if (filterByMedia !== 'all') {
+                filteredMovies = allMovies.filter(movie => movie.media === filterByMedia);
+            }
+
+            // Filter by search query
+            if (searchQuery) {
+                filteredMovies = filteredMovies.filter(movie => movie.title.toLowerCase().includes(searchQuery));
+            }
+
+            // Sort the filtered movies
+            filteredMovies.sort((a, b) => {
+                let aValue, bValue;
+                if (sortBy === 'title') {
+                    aValue = a.title;
+                    bValue = b.title;
+                    return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                } else if (sortBy === 'year') {
+                    aValue = a.year;
+                    bValue = b.year;
+                } else { // Scores: tomatometer, audienceScore, imdb
+                    aValue = a[sortBy];
+                    bValue = b[sortBy];
+                }
+
+                if (aValue < bValue) return isAscending ? -1 : 1;
+                if (aValue > bValue) return isAscending ? 1 : -1;
+                return 0;
+            });
+            
+            // Clear the container before re-rendering
+            moviesContainer.innerHTML = '';
+            
+            // Render the sorted and filtered movies
+            filteredMovies.forEach((movie) => {
+                const movieCard = createMovieCard(movie);
+                moviesContainer.appendChild(movieCard);
+            });
+
+            // Update the status indicator after filtering and sorting
+            updateStatusIndicator(filteredMovies);
+        }
+
+        // Function to handle the view buttons
+        function setView(view) {
+            const moviesContainer = document.getElementById('movies-container');
+            isManualViewSelected = true;
+            
+            // Remove all previous view classes
+            moviesContainer.classList.remove('grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-5', 'flex', 'flex-col');
+            
+            // Add the new classes
+            if (view === 'list') {
+                moviesContainer.classList.add('flex', 'flex-col');
+            } else if (view === 'grid-3') {
+                moviesContainer.classList.add('grid-cols-3');
+            } else if (view === 'grid-4') {
+                moviesContainer.classList.add('grid-cols-4');
+            } else if (view === 'grid-5') {
+                moviesContainer.classList.add('grid-cols-5');
+            }
+        }
+        
+        // Function to open the modal for adding a new movie
+        function openModalForAdd() {
+            currentEditingMovieId = null;
+            const form = document.getElementById('movie-form');
+            form.reset();
+            document.getElementById('modal-title').textContent = 'Add New Movie';
+            document.getElementById('save-movie-btn').textContent = 'Add Movie';
+            document.getElementById('movie-modal-backdrop').classList.replace('opacity-0', 'opacity-100');
+            document.getElementById('movie-modal-backdrop').classList.replace('pointer-events-none', 'pointer-events-auto');
+            document.getElementById('movie-modal').classList.replace('scale-95', 'scale-100');
+        }
+
+        // Function to open the modal for editing a movie
+        function openModalForEdit(movieId) {
+            currentEditingMovieId = movieId;
+            const movie = allMovies.find(m => m.id === movieId);
+            
+            document.getElementById('modal-title').textContent = 'Edit Movie';
+            document.getElementById('save-movie-btn').textContent = 'Save Changes';
+            
+            // Populate the form with the movie's current data
+            document.getElementById('movie-title').value = movie.title;
+            document.getElementById('movie-year').value = movie.year;
+            document.getElementById('movie-tomatometer').value = movie.tomatometer;
+            document.getElementById('movie-audience-score').value = movie.audienceScore;
+            document.getElementById('movie-imdb').value = movie.imdb;
+            document.getElementById('movie-media').value = movie.media;
+            document.getElementById('movie-image-url').value = movie.imageUrl || '';
+
+            document.getElementById('movie-modal-backdrop').classList.replace('opacity-0', 'opacity-100');
+            document.getElementById('movie-modal-backdrop').classList.replace('pointer-events-none', 'pointer-events-auto');
+            document.getElementById('movie-modal').classList.replace('scale-95', 'scale-100');
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('movie-modal-backdrop').classList.replace('opacity-100', 'opacity-0');
+            document.getElementById('movie-modal-backdrop').classList.replace('pointer-events-auto', 'pointer-events-none');
+            document.getElementById('movie-modal').classList.replace('scale-100', 'scale-95');
+            document.getElementById('movie-form').reset();
+        }
+
+        // Function to handle the form submission
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('movie-title').value;
+            const year = parseInt(document.getElementById('movie-year').value);
+            const tomatometer = parseInt(document.getElementById('movie-tomatometer').value) || 0;
+            const audienceScore = parseInt(document.getElementById('movie-audience-score').value) || 0;
+            const imdb = parseFloat(document.getElementById('movie-imdb').value) || 0;
+            const media = document.getElementById('movie-media').value;
+            const imageUrl = document.getElementById('movie-image-url').value || null;
+            
+            const newOrUpdatedMovie = { title, year, tomatometer, audienceScore, imdb, media, imageUrl };
+            
+            try {
+                if (currentEditingMovieId) {
+                    await setDoc(doc(moviesCollectionRef, currentEditingMovieId), newOrUpdatedMovie);
+                } else {
+                    await addDoc(moviesCollectionRef, newOrUpdatedMovie);
+                }
+            } catch (e) {
+                console.error("Error adding/updating document: ", e);
+            }
+            
+            closeModal();
+            filterAndSortMovies();
+        }
+
+        // Main function to initialize and set up Firebase listeners
+        async function init() {
+            try {
+                // Anonymous authentication is required to perform Firestore writes (e.g., adding/editing movies)
+                // if your security rules are configured to require authentication.
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Authentication Error:", error);
+                // If authentication fails, the rest of the code won't run.
+                return;
+            }
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const collectionPath = `movies`;
+                    moviesCollectionRef = collection(db, collectionPath);
+                    
+                    const initialDocs = await getDocs(query(moviesCollectionRef, limit(1)));
+                    
+                    if (initialDocs.empty) {
+                        console.log("Database is empty, seeding with default data.");
+                        try {
+                            const parsedData = JSON.parse(defaultMoviesData);
+                            for (const movie of parsedData) {
+                                await addDoc(moviesCollectionRef, movie);
+                            }
+                        } catch (e) {
+                            console.error("Error parsing default movie data:", e);
+                        }
+                    }
+
+                    onSnapshot(moviesCollectionRef, (snapshot) => {
+                        const moviesFromDb = [];
+                        snapshot.forEach(doc => {
+                            moviesFromDb.push({ id: doc.id, ...doc.data() });
+                        });
+                        allMovies = moviesFromDb;
+                        
+                        filterAndSortMovies();
+                    });
+                } else {
+                    console.error("No user authenticated. Cannot connect to Firestore.");
+                }
+            });
+        }
+        
+        // Event listeners and initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add event listeners to the new buttons
+            document.getElementById('add-movie-btn').addEventListener('click', openModalForAdd);
+            document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
+            document.getElementById('movie-form').addEventListener('submit', handleFormSubmit);
+
+            // Add event listeners to the view buttons
+            document.querySelectorAll('.view-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    // Update button styles
+                    document.querySelectorAll('.view-btn').forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-800');
+                    });
+                    event.target.classList.remove('bg-gray-200', 'text-gray-800');
+                    event.target.classList.add('bg-blue-500', 'text-white');
+                    
+                    const viewType = event.target.dataset.view;
+                    setView(viewType);
+                });
+            });
+
+            // Add event listeners to the controls
+            document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
+            document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
+            document.getElementById('sort-order').addEventListener('click', () => {
+                isAscending = !isAscending;
+                document.getElementById('sort-order-text').textContent = isAscending ? 'Sort Ascending' : 'Sort Descending';
+                filterAndSortMovies();
+            });
+            document.getElementById('reset-filters').addEventListener('click', () => {
+                // Reset all controls to their default state
+                document.getElementById('sort-by').value = 'title';
+                document.getElementById('filter-by-media').value = 'all';
+                document.getElementById('search-input').value = '';
+
+                // Reset sort order to ascending
+                isAscending = true; 
+                document.getElementById('sort-order-text').textContent = 'Sort Ascending';
+
+                // Reset view to default (grid-4) and update button styles
+                setView('grid-4');
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                document.querySelector('[data-view="grid-4"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('[data-view="grid-4"]').classList.add('bg-blue-500', 'text-white');
+
+                filterAndSortMovies();
+            });
+            document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
+            
+            // Initial view setup
+            setView('grid-4');
+
+            // Initialize Firebase and load movies
+            init();
+        });
+    </script>
+</body>
+</html>
