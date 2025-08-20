@@ -16,9 +16,9 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                }
-            }
-        }
+                },
+            },
+        };
     </script>
     <style>
         body {
@@ -62,61 +62,72 @@
     <main class="max-w-7xl mx-auto">
         <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">My Movie Collection</h1>
 
-        <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
-            
-            <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                <div class="flex items-center space-x-2 w-full sm:w-auto">
-                    <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
-                    <select id="sort-by" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                        <option value="title" selected>Title</option>
-                        <option value="year">Year</option>
-                        <option value="tomatometer">Tomatometer</option>
-                        <option value="audienceScore">Audience Score</option>
-                        <option value="imdb">IMDb Score</option>
-                    </select>
+        <div class="flex justify-center items-center mb-6">
+            <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                Sign In with Google
+            </button>
+            <button id="signout-btn" class="px-6 py-3 bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200" style="display: none;">
+                Sign Out
+            </button>
+        </div>
+
+        <div id="authenticated-content" style="display: none;">
+            <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
+                
+                <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
+                        <select id="sort-by" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <option value="title" selected>Title</option>
+                            <option value="year">Year</option>
+                            <option value="tomatometer">Tomatometer</option>
+                            <option value="audienceScore">Audience Score</option>
+                            <option value="imdb">IMDb Score</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
+                        <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <option value="all">All</option>
+                            <option value="4K Ultra HD">4K Ultra HD</option>
+                            <option value="Blu-Ray">Blu-Ray</option>
+                            <option value="DVD">DVD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
+                    <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
+                    <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
+                    <button data-view="grid-3" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">3</button>
+                    <button data-view="grid-4" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">4</button>
+                    <button data-view="grid-5" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">5</button>
                 </div>
                 
-                <div class="flex items-center space-x-2 w-full sm:w-auto">
-                    <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
-                    <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                        <option value="all">All</option>
-                        <option value="4K Ultra HD">4K Ultra HD</option>
-                        <option value="Blu-Ray">Blu-Ray</option>
-                        <option value="DVD">DVD</option>
-                    </select>
+                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
+                    <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                    <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                        <span id="sort-order-text">Sort Ascending</span>
+                    </button>
+                    <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
+                        Reset
+                    </button>
                 </div>
-            </div>
-
-            <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
-                <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
-                <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
-                <button data-view="grid-3" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">3</button>
-                <button data-view="grid-4" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">4</button>
-                <button data-view="grid-5" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">5</button>
+                
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
-                <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
-                <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
-                    <span id="sort-order-text">Sort Ascending</span>
-                </button>
-                <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
-                    Reset
-                </button>
+            <div id="status-indicator" class="bg-white p-4 rounded-xl shadow-md text-gray-700 text-center mb-6">
+                Please sign in to view your collection.
             </div>
             
-        </div>
-        
-        <div id="status-indicator" class="bg-white p-4 rounded-xl shadow-md text-gray-700 text-center mb-6">
-            Loading movie data...
-        </div>
-        
-        <div class="flex justify-center mb-6">
-            <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
-        </div>
-
-        <div id="movies-container" class="grid gap-6">
+            <div class="flex justify-center mb-6">
+                <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
             </div>
+
+            <div id="movies-container" class="grid gap-6">
+            </div>
+        </div>
     </main>
 
     <div id="movie-modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0 pointer-events-none">
@@ -166,7 +177,7 @@
     <script type="module">
         // Import the Firebase SDKs from a CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
         // IMPORTANT: For local development, hardcode your Firebase config.
@@ -1816,7 +1827,7 @@
             const indicator = document.getElementById('status-indicator');
             
             if (!movies || movies.length === 0) {
-                indicator.innerHTML = `Loading movie data...`;
+                indicator.innerHTML = `No movies found. Add your first movie!`;
                 return;
             }
             
@@ -1899,11 +1910,11 @@
             if (view === 'list') {
                 moviesContainer.classList.add('flex', 'flex-col');
             } else if (view === 'grid-3') {
-                moviesContainer.classList.add('grid-cols-3');
+                moviesContainer.classList.add('grid', 'grid-cols-3');
             } else if (view === 'grid-4') {
-                moviesContainer.classList.add('grid-cols-4');
+                moviesContainer.classList.add('grid', 'grid-cols-4');
             } else if (view === 'grid-5') {
-                moviesContainer.classList.add('grid-cols-5');
+                moviesContainer.classList.add('grid', 'grid-cols-5');
             }
         }
         
@@ -1977,27 +1988,46 @@
             filterAndSortMovies();
         }
 
+        // Functions for Google Sign-In and Sign-Out
+        async function signInWithGoogle() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Error during Google Sign-In:", error);
+            }
+        }
+
+        async function handleSignOut() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Error during Sign-Out:", error);
+            }
+        }
+
         // Main function to initialize and set up Firebase listeners
         async function init() {
-            try {
-                // Anonymous authentication is required to perform Firestore writes (e.g., adding/editing movies)
-                // if your security rules are configured to require authentication.
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Authentication Error:", error);
-                // If authentication fails, the rest of the code won't run.
-                return;
-            }
-            
             onAuthStateChanged(auth, async (user) => {
+                const loginButton = document.getElementById('login-btn');
+                const signOutButton = document.getElementById('signout-btn');
+                const authenticatedContent = document.getElementById('authenticated-content');
+                const statusIndicator = document.getElementById('status-indicator');
+
                 if (user) {
-                    const collectionPath = `movies`;
-                    moviesCollectionRef = collection(db, collectionPath);
+                    console.log("User is authenticated:", user.uid);
+                    loginButton.style.display = 'none';
+                    signOutButton.style.display = 'block';
+                    authenticatedContent.style.display = 'block';
                     
+                    // Set the collection reference to be user-specific
+                    moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
+                    
+                    // Check if the user's collection is empty and seed data
                     const initialDocs = await getDocs(query(moviesCollectionRef, limit(1)));
                     
                     if (initialDocs.empty) {
-                        console.log("Database is empty, seeding with default data.");
+                        console.log("User's database is empty, seeding with default data.");
                         try {
                             const parsedData = JSON.parse(defaultMoviesData);
                             for (const movie of parsedData) {
@@ -2008,6 +2038,7 @@
                         }
                     }
 
+                    // Start listening for real-time updates on the user's movie collection
                     onSnapshot(moviesCollectionRef, (snapshot) => {
                         const moviesFromDb = [];
                         snapshot.forEach(doc => {
@@ -2015,10 +2046,19 @@
                         });
                         allMovies = moviesFromDb;
                         
+                        // Render movies after data is loaded
                         filterAndSortMovies();
                     });
                 } else {
-                    console.error("No user authenticated. Cannot connect to Firestore.");
+                    console.log("No user is authenticated.");
+                    loginButton.style.display = 'block';
+                    signOutButton.style.display = 'none';
+                    authenticatedContent.style.display = 'none';
+                    statusIndicator.innerHTML = 'Please sign in to view your collection.';
+                    
+                    // Clear the movies list for unauthenticated users
+                    allMovies = [];
+                    filterAndSortMovies();
                 }
             });
         }
@@ -2029,6 +2069,10 @@
             document.getElementById('add-movie-btn').addEventListener('click', openModalForAdd);
             document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
             document.getElementById('movie-form').addEventListener('submit', handleFormSubmit);
+
+            // Add event listeners to the authentication buttons
+            document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
+            document.getElementById('signout-btn').addEventListener('click', handleSignOut);
 
             // Add event listeners to the view buttons
             document.querySelectorAll('.view-btn').forEach(button => {
