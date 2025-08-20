@@ -1949,7 +1949,7 @@
 
             document.getElementById('movie-modal-backdrop').classList.replace('opacity-0', 'opacity-100');
             document.getElementById('movie-modal-backdrop').classList.replace('pointer-events-none', 'pointer-events-auto');
-            document.getElementById('movie-modal').classList.replace('scale-95', 'scale-100');
+            document.getElementById('movie-modal').classList.replace('scale-100', 'scale-95');
         }
 
         // Function to close the modal
@@ -2023,22 +2023,9 @@
                     // Set the collection reference to be user-specific
                     moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
                     
-                    // Check if the user's collection is empty and seed data
-                    const initialDocs = await getDocs(query(moviesCollectionRef, limit(1)));
-                    
-                    if (initialDocs.empty) {
-                        console.log("User's database is empty, seeding with default data.");
-                        try {
-                            const parsedData = JSON.parse(defaultMoviesData);
-                            for (const movie of parsedData) {
-                                await addDoc(moviesCollectionRef, movie);
-                            }
-                        } catch (e) {
-                            console.error("Error parsing default movie data:", e);
-                        }
-                    }
-
-                    // Start listening for real-time updates on the user's movie collection
+                    // onSnapshot listener is now the only source of truth.
+                    // It will initially load all documents and will automatically
+                    // update whenever a change occurs in the database.
                     onSnapshot(moviesCollectionRef, (snapshot) => {
                         const moviesFromDb = [];
                         snapshot.forEach(doc => {
