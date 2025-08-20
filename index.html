@@ -2006,49 +2006,70 @@
             }
         }
 
-// Main function to initialize and set up Firebase listeners
-async function init() {
-    onAuthStateChanged(auth, async (user) => {
-        const loginButton = document.getElementById('login-btn');
-        const signOutButton = document.getElementById('signout-btn');
-        const authenticatedContent = document.getElementById('authenticated-content');
-        const statusIndicator = document.getElementById('status-indicator');
-
-        if (user) {
-            console.log("User is authenticated:", user.uid);
-            loginButton.style.display = 'none';
-            signOutButton.style.display = 'block';
-            authenticatedContent.style.display = 'block';
-            
-            // Set the collection reference to be user-specific
-            moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
-            
-            // onSnapshot listener is now the only source of truth.
-            // It will initially load all documents and will automatically
-            // update whenever a change occurs in the database.
-            onSnapshot(moviesCollectionRef, (snapshot) => {
-                const moviesFromDb = [];
-                snapshot.forEach(doc => {
-                    moviesFromDb.push({ id: doc.id, ...doc.data() });
-                });
-                allMovies = moviesFromDb;
-                
-                // Render movies after data is loaded
-                filterAndSortMovies();
-            });
-        } else {
-            console.log("No user is authenticated.");
-            loginButton.style.display = 'block';
-            signOutButton.style.display = 'none';
-            authenticatedContent.style.display = 'none';
-            statusIndicator.innerHTML = 'Please sign in to view your collection.';
-            
-            // Clear the movies list for unauthenticated users
-            allMovies = [];
-            filterAndSortMovies();
+        // One-time function to seed initial data.
+        // You can uncomment and run this once if your user's collection is empty.
+        // Remember to re-comment it out or remove it after it runs successfully.
+        /*
+        async function seedInitialData() {
+            console.log("Seeding initial data...");
+            try {
+                const parsedData = JSON.parse(defaultMoviesData);
+                for (const movie of parsedData) {
+                    await addDoc(moviesCollectionRef, movie);
+                }
+                console.log("Initial data seeded successfully.");
+            } catch (e) {
+                console.error("Error seeding initial movie data:", e);
+            }
         }
-    });
-}
+        */
+
+        // Main function to initialize and set up Firebase listeners
+        function init() {
+            onAuthStateChanged(auth, async (user) => {
+                const loginButton = document.getElementById('login-btn');
+                const signOutButton = document.getElementById('signout-btn');
+                const authenticatedContent = document.getElementById('authenticated-content');
+                const statusIndicator = document.getElementById('status-indicator');
+
+                if (user) {
+                    console.log("User is authenticated:", user.uid);
+                    loginButton.style.display = 'none';
+                    signOutButton.style.display = 'block';
+                    authenticatedContent.style.display = 'block';
+                    
+                    // Set the collection reference to be user-specific
+                    moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
+
+                    // Uncomment this to run the one-time data seeding.
+                    // await seedInitialData();
+
+                    // onSnapshot listener is now the only source of truth.
+                    // It will initially load all documents and will automatically
+                    // update whenever a change occurs in the database.
+                    onSnapshot(moviesCollectionRef, (snapshot) => {
+                        const moviesFromDb = [];
+                        snapshot.forEach(doc => {
+                            moviesFromDb.push({ id: doc.id, ...doc.data() });
+                        });
+                        allMovies = moviesFromDb;
+                        
+                        // Render movies after data is loaded
+                        filterAndSortMovies();
+                    });
+                } else {
+                    console.log("No user is authenticated.");
+                    loginButton.style.display = 'block';
+                    signOutButton.style.display = 'none';
+                    authenticatedContent.style.display = 'none';
+                    statusIndicator.innerHTML = 'Please sign in to view your collection.';
+                    
+                    // Clear the movies list for unauthenticated users
+                    allMovies = [];
+                    filterAndSortMovies();
+                }
+            });
+        }
         
         // Event listeners and initial setup
         document.addEventListener('DOMContentLoaded', () => {
@@ -2117,4 +2138,3 @@ async function init() {
     </script>
 </body>
 </html>
-
