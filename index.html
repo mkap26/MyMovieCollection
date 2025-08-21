@@ -287,7 +287,7 @@
         
         function createMovieCard(movie) {
             const cardContainer = document.createElement('div');
-            cardContainer.classList.add('movie-card-container', 'w-full', 'h-full');
+            cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer');
 
             const card = document.createElement('div');
             card.classList.add('movie-card');
@@ -295,7 +295,7 @@
 
             // Front of the card
             const cardFront = document.createElement('div');
-            cardFront.classList.add('movie-card-front');
+            cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
             
             const editButton = document.createElement('button');
             editButton.innerHTML = `
@@ -323,9 +323,32 @@
             titleHeading.textContent = `${movie.title} (${movie.year})`;
             cardFront.appendChild(titleHeading);
 
+            const scoresDiv = document.createElement('div');
+            scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
+            
+            const tomatometerSpan = document.createElement('span');
+            tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
+            scoresDiv.appendChild(tomatometerSpan);
+
+            const audienceScoreSpan = document.createElement('span');
+            audienceScoreSpan.textContent = `🍿 Audience: ${movie.audienceScore}%`;
+            scoresDiv.appendChild(audienceScoreSpan);
+
+            const imdbSpan = document.createElement('span');
+            imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
+            scoresDiv.appendChild(imdbSpan);
+            
+            cardFront.appendChild(scoresDiv);
+
+            const mediaDiv = document.createElement('div');
+            mediaDiv.classList.add('mt-auto', 'text-xs', 'font-medium', 'text-gray-500');
+            mediaDiv.textContent = `Media: ${movie.media}`;
+            cardFront.appendChild(mediaDiv);
+
+
             // Back of the card
             const cardBack = document.createElement('div');
-            cardBack.classList.add('movie-card-back', 'space-y-4');
+            cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
             
             const backHeader = document.createElement('div');
             backHeader.classList.add('flex', 'justify-between', 'items-start', 'gap-4');
