@@ -55,6 +55,7 @@
         }
         .movie-card.flipped {
             transform: rotateY(180deg);
+            z-index: 10;
         }
         .movie-card-front, .movie-card-back {
             position: absolute;
@@ -293,7 +294,7 @@
             card.classList.add('movie-card');
             card.setAttribute('data-movie-id', movie.id);
 
-            // Front of the card
+            // Front of the card (Original Design)
             const cardFront = document.createElement('div');
             cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
             
@@ -346,7 +347,7 @@
             cardFront.appendChild(mediaDiv);
 
 
-            // Back of the card
+            // Back of the card (Organized Details)
             const cardBack = document.createElement('div');
             cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
             
