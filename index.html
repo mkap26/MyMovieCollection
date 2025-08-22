@@ -41,6 +41,15 @@
         }
         
         /* CSS for the flip animation */
+        /*
+            New .flip-container wrapper to grow the card height when flipped.
+            This is the key to pushing the next row of cards down.
+        */
+        .flip-container {
+            transition: height 0.6s ease-in-out;
+            will-change: height;
+        }
+
         .movie-card-container {
             perspective: 1000px;
             height: 100%;
@@ -287,6 +296,10 @@
         ]`;
         
         function createMovieCard(movie) {
+            // New flip-container to manage dynamic height
+            const flipContainer = document.createElement('div');
+            flipContainer.classList.add('flip-container');
+
             const cardContainer = document.createElement('div');
             cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer');
 
@@ -385,12 +398,18 @@
             card.appendChild(cardFront);
             card.appendChild(cardBack);
             cardContainer.appendChild(card);
+            flipContainer.appendChild(cardContainer); // Wrap the card with the new container
             
             cardContainer.addEventListener('click', () => {
-                card.classList.toggle('flipped');
+                const isFlipped = card.classList.toggle('flipped');
+                if (isFlipped) {
+                    flipContainer.style.height = `${cardBack.offsetHeight}px`;
+                } else {
+                    flipContainer.style.height = `${cardFront.offsetHeight}px`;
+                }
             });
 
-            return cardContainer;
+            return flipContainer;
         }
 
         function updateStatusIndicator(movies) {
