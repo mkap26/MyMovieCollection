@@ -40,8 +40,6 @@
             background: #6b7280;
         }
         
-        /* Removed all CSS for flip animation */
-        
         /* CSS to maintain a 2:3 aspect ratio for movie posters */
         .poster-container {
             position: relative;
@@ -57,6 +55,24 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* New CSS for the list view layout to ensure it's not a flip card */
+        .movie-list-item {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .movie-list-item .poster-container {
+            width: 80px;
+            flex-shrink: 0;
+        }
+        .movie-list-item .movie-details {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -256,96 +272,56 @@
         function createMovieCard(movie) {
             const isListView = document.getElementById('movies-container').classList.contains('flex');
 
-            // If list view, create a simpler card
+            const container = document.createElement('div');
+            container.setAttribute('data-movie-id', movie.id);
+
+            const editButton = document.createElement('button');
+            editButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
+                </svg>
+            `;
+            editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200');
+            editButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openModalForEdit(movie.id);
+            });
+            
+            const imageContainer = document.createElement('div');
+            imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
+            const movieImage = document.createElement('img');
+            movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
+            movieImage.alt = `Poster for ${movie.title}`;
+            imageContainer.appendChild(movieImage);
+            
+            const detailsDiv = document.createElement('div');
+            detailsDiv.classList.add('flex', 'flex-col', 'space-y-1', 'text-sm');
+            detailsDiv.innerHTML = `
+                <h2 class="text-lg font-semibold text-gray-900">${movie.title} (${movie.year})</h2>
+                <p><strong>Rating:</strong> ${movie.rating || 'N/A'}</p>
+                <p><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</p>
+                <p><strong>Genre:</strong> ${movie.genre || 'N/A'}</p>
+                <p><strong>Media:</strong> ${movie.media}</p>
+                <div class="flex flex-wrap gap-x-4 text-gray-600">
+                    <span>🍅 Tomatometer: ${movie.tomatometer}%</span>
+                    <span>🍿 Audience: ${movie.audienceScore}%</span>
+                    <span>⭐ IMDb: ${movie.imdb}/10</span>
+                </div>
+            `;
+
             if (isListView) {
-                const container = document.createElement('div');
                 container.classList.add('movie-list-item');
-                container.setAttribute('data-movie-id', movie.id);
-                
-                const imageContainer = document.createElement('div');
-                imageContainer.classList.add('poster-container', 'rounded-md');
-                const movieImage = document.createElement('img');
-                movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
-                movieImage.alt = `Poster for ${movie.title}`;
-                imageContainer.appendChild(movieImage);
                 container.appendChild(imageContainer);
-                
-                const detailsDiv = document.createElement('div');
-                detailsDiv.classList.add('movie-details', 'space-y-1');
-                detailsDiv.innerHTML = `
-                    <h2 class="text-xl font-bold text-gray-900">${movie.title} (${movie.year})</h2>
-                    <p class="text-gray-700"><strong>Genre:</strong> ${movie.genre || 'N/A'}</p>
-                    <p class="text-gray-700"><strong>Rating:</strong> ${movie.rating || 'N/A'}</p>
-                    <p class="text-gray-700"><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</p>
-                    <p class="text-gray-700"><strong>Media:</strong> ${movie.media}</p>
-                    <p class="text-gray-700">🍅 Tomatometer: ${movie.tomatometer}% | 🍿 Audience: ${movie.audienceScore}% | ⭐ IMDb: ${movie.imdb}/10</p>
-                `;
                 container.appendChild(detailsDiv);
-                
-                const editButton = document.createElement('button');
-                editButton.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
-                    </svg>
-                `;
-                editButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openModalForEdit(movie.id);
-                });
                 container.appendChild(editButton);
-                return container;
             } else {
-                // This is the original card for grid view, now displaying all data.
-                const container = document.createElement('div');
                 container.classList.add('bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
-                container.setAttribute('data-movie-id', movie.id);
-
-                const editButton = document.createElement('button');
-                editButton.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
-                    </svg>
-                `;
-                editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200');
-                editButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openModalForEdit(movie.id);
-                });
-                container.appendChild(editButton);
-
-                const imageContainer = document.createElement('div');
-                imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
-                const movieImage = document.createElement('img');
-                movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
-                movieImage.alt = `Poster for ${movie.title}`;
-                imageContainer.appendChild(movieImage);
                 container.appendChild(imageContainer);
-                
-                const titleHeading = document.createElement('h2');
-                titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900');
-                titleHeading.textContent = `${movie.title} (${movie.year})`;
-                container.appendChild(titleHeading);
-                
-                const detailsList = document.createElement('ul');
-                detailsList.classList.add('text-sm', 'text-gray-700', 'space-y-1', 'mt-2');
-                detailsList.innerHTML = `
-                    <li><strong>Rating:</strong> ${movie.rating || 'N/A'}</li>
-                    <li><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</li>
-                    <li><strong>Genre:</strong> ${movie.genre || 'N/A'}</li>
-                    <li><strong>Media:</strong> ${movie.media}</li>
-                `;
-                container.appendChild(detailsList);
-                
-                const scoresList = document.createElement('ul');
-                scoresList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
-                scoresList.innerHTML = `
-                    <li>🍅 <strong>Tomatometer:</strong> ${movie.tomatometer}%</li>
-                    <li>🍿 <strong>Audience:</strong> ${movie.audienceScore}%</li>
-                    <li>⭐ <strong>IMDb:</strong> ${movie.imdb}/10</li>
-                `;
-                container.appendChild(scoresList);
-                return container;
+                container.appendChild(detailsDiv);
+                container.appendChild(editButton);
             }
+
+            return container;
         }
 
         function updateStatusIndicator(movies) {
@@ -437,6 +413,7 @@
             } else if (view === 'grid-5') {
                 moviesContainer.classList.add('grid', 'grid-cols-5');
             }
+            filterAndSortMovies(); // Re-render the movies with the new view
         }
         
         function openModalForAdd() {
