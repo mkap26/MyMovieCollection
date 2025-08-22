@@ -40,6 +40,8 @@
             background: #6b7280;
         }
         
+        /* Removed all CSS for flip animation */
+        
         /* CSS to maintain a 2:3 aspect ratio for movie posters */
         .poster-container {
             position: relative;
@@ -56,23 +58,24 @@
             object-fit: cover;
         }
 
-        /* New CSS for the list view layout to ensure it's not a flip card */
-        .movie-list-item {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            background-color: white;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .movie-list-item .poster-container {
-            width: 80px;
-            flex-shrink: 0;
-        }
-        .movie-list-item .movie-details {
-            flex-grow: 1;
-        }
+        /* New CSS for the list view layout */
+        .movie-list-item {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            position: relative;
+        }
+        .movie-list-item .poster-container {
+            width: 80px;
+            flex-shrink: 0;
+        }
+        .movie-list-item .movie-details {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -274,7 +277,7 @@
 
             const container = document.createElement('div');
             container.setAttribute('data-movie-id', movie.id);
-
+            
             const editButton = document.createElement('button');
             editButton.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
@@ -286,7 +289,7 @@
                 e.stopPropagation();
                 openModalForEdit(movie.id);
             });
-            
+
             const imageContainer = document.createElement('div');
             imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
             const movieImage = document.createElement('img');
@@ -413,7 +416,7 @@
             } else if (view === 'grid-5') {
                 moviesContainer.classList.add('grid', 'grid-cols-5');
             }
-            filterAndSortMovies(); // Re-render the movies with the new view
+            filterAndSortMovies();
         }
         
         function openModalForAdd() {
