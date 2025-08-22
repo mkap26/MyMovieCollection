@@ -39,7 +39,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #6b7280;
         }
-        
+        
         /* CSS for the flip animation */
         .movie-card-container {
             perspective: 1000px;
@@ -54,22 +54,14 @@
             cursor: pointer;
         }
 
-        /* The key fix:
-          - When flipped, use 'position: absolute' to take it out of the grid flow.
-          - Use 'z-index' to ensure it's on top.
-          - Use 'top' and 'left' to place it in the center of the grid item.
-          - The 'width' and 'height' properties will expand the card to a larger size.
-        */
+        /* The core fix: use transform scale and a higher z-index on the container's pseudo-element. */
+        .movie-card-container:focus-within .movie-card,
         .movie-card.flipped {
-            transform: rotateY(180deg) scale(1.1); /* Slightly enlarge when flipped */
+            transform: rotateY(180deg) scale(1.1);
             z-index: 10;
-            position: absolute; /* Take the card out of the flow */
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotateY(180deg) scale(1.1);
-            width: 300px; /* Adjust as needed for a better view */
-            height: 450px;
+            position: relative; /* Ensure z-index works correctly */
         }
+        
         .movie-card-front, .movie-card-back {
             position: absolute;
             width: 100%;
@@ -103,8 +95,7 @@
             height: 100%;
             object-fit: cover;
         }
-        
-        /* New CSS for the list view layout */
+        /* Added new CSS for the list view layout to ensure it's not a flip card */
         .movie-list-item {
             display: flex;
             gap: 1rem;
@@ -139,7 +130,7 @@
 
         <div id="authenticated-content" style="display: none;">
             <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
-                
+                
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
                         <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
@@ -154,7 +145,7 @@
                             <option value="imdb">IMDb Score</option>
                         </select>
                     </div>
-                    
+                    
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
                         <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
                         <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
@@ -164,7 +155,7 @@
                             <option value="DVD">DVD</option>
                         </select>
                     </div>
-                    
+                    
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
                         <label for="filter-by-genre" class="text-gray-700 font-medium whitespace-nowrap">Filter by Genre:</label>
                         <select id="filter-by-genre" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
@@ -185,7 +176,7 @@
                     <button data-view="grid-4" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">4</button>
                     <button data-view="grid-5" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">5</button>
                 </div>
-                
+                
                 <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
                     <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
                     <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
@@ -195,13 +186,13 @@
                         Reset
                     </button>
                 </div>
-                
+                
             </div>
-            
+            
             <div id="status-indicator" class="bg-white p-4 rounded-xl shadow-md text-gray-700 text-center mb-6">
                 Please sign in to view your collection.
             </div>
-            
+            
             <div class="flex justify-center mb-6">
                 <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
             </div>
@@ -293,17 +284,17 @@
             appId: "1:513133972702:web:f0d4cfbb018f9e815a864f",
             measurementId: "G-S41SMHF1WD"
         };
-        
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
+        
         let moviesCollectionRef;
         let allMovies = [];
         let isAscending = true;
         let isManualViewSelected = false;
         let currentEditingMovieId = null;
-        
+        
         const defaultMoviesData = `[
             { "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
             { "title": "American Sniper", "year": 2014, "tomatometer": 34, "audienceScore": 85, "imdb": 7.3, "media": "4K Ultra HD", "rating": "R", "length": 133, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper" },
@@ -316,17 +307,17 @@
             { "title": "The Dark Knight", "year": 2008, "tomatometer": 94, "audienceScore": 94, "imdb": 9.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 152, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight" },
             { "title": "Pulp Fiction", "year": 1994, "tomatometer": 92, "audienceScore": 96, "imdb": 8.9, "media": "Blu-Ray", "rating": "R", "length": 154, "genre": "Crime", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Pulp+Fiction" }
         ]`;
-        
+        
         function createMovieCard(movie) {
             const isListView = document.getElementById('movies-container').classList.contains('flex');
-            
+            
             const container = document.createElement('div');
             container.setAttribute('data-movie-id', movie.id);
 
             // If list view, create a simpler card
             if (isListView) {
                 container.classList.add('movie-list-item');
-                
+                
                 const imageContainer = document.createElement('div');
                 imageContainer.classList.add('poster-container', 'rounded-md');
                 const movieImage = document.createElement('img');
@@ -334,7 +325,7 @@
                 movieImage.alt = `Poster for ${movie.title}`;
                 imageContainer.appendChild(movieImage);
                 container.appendChild(imageContainer);
-                
+                
                 const detailsDiv = document.createElement('div');
                 detailsDiv.classList.add('movie-details', 'space-y-1');
                 detailsDiv.innerHTML = `
@@ -346,7 +337,7 @@
                     <p class="text-gray-700">🍅 Tomatometer: ${movie.tomatometer}% | 🍿 Audience: ${movie.audienceScore}% | ⭐ IMDb: ${movie.imdb}/10</p>
                 `;
                 container.appendChild(detailsDiv);
-                
+                
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
@@ -358,7 +349,7 @@
                     openModalForEdit(movie.id);
                 });
                 container.appendChild(editButton);
-                
+                
                 return container;
             } else {
                 // Original flip card logic for grid views
@@ -371,7 +362,7 @@
                 // Front of the card (Original Design)
                 const cardFront = document.createElement('div');
                 cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
-                
+                
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
@@ -400,7 +391,7 @@
 
                 const scoresDiv = document.createElement('div');
                 scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
-                
+                
                 const tomatometerSpan = document.createElement('span');
                 tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
                 scoresDiv.appendChild(tomatometerSpan);
@@ -412,7 +403,7 @@
                 const imdbSpan = document.createElement('span');
                 imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
                 scoresDiv.appendChild(imdbSpan);
-                
+                
                 cardFront.appendChild(scoresDiv);
 
                 const mediaDiv = document.createElement('div');
@@ -424,7 +415,7 @@
                 // Back of the card (Organized Details)
                 const cardBack = document.createElement('div');
                 cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
-                
+                
                 const backHeader = document.createElement('div');
                 backHeader.classList.add('flex', 'justify-between', 'items-start', 'gap-4');
                 const backTitle = document.createElement('h2');
@@ -446,7 +437,7 @@
                     <li><strong>Media:</strong> ${movie.media}</li>
                 `;
                 cardBack.appendChild(detailsList);
-                
+                
                 const scoresList = document.createElement('ul');
                 scoresList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
                 scoresList.innerHTML = `
@@ -459,30 +450,30 @@
                 card.appendChild(cardFront);
                 card.appendChild(cardBack);
                 container.appendChild(card);
-                
+                
                 card.addEventListener('click', () => {
                     card.classList.toggle('flipped');
                 });
                 return container;
             }
         }
-        
+        
         function updateStatusIndicator(movies) {
             const indicator = document.getElementById('status-indicator');
-            
+            
             if (!movies || movies.length === 0) {
                 indicator.innerHTML = `No movies found. Add your first movie!`;
                 return;
             }
-            
+            
             const counts = movies.reduce((acc, movie) => {
                 acc[movie.media] = (acc[movie.media] || 0) + 1;
                 return acc;
             }, {});
-            
+            
             const total = movies.length;
             let html = `<span>Total Movies: <strong>${total}</strong></span>`;
-            
+            
             for (const mediaType in counts) {
                 html += ` | <span>${mediaType}: <strong>${counts[mediaType]}</strong></span>`;
             }
@@ -498,11 +489,11 @@
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
             let filteredMovies = allMovies;
-            
+            
             if (filterByMedia !== 'all') {
                 filteredMovies = filteredMovies.filter(movie => movie.media === filterByMedia);
             }
-            
+            
             if (filterByGenre !== 'all') {
                 filteredMovies = filteredMovies.filter(movie => movie.genre === filterByGenre);
             }
@@ -529,9 +520,9 @@
                 if (aValue > bValue) return isAscending ? 1 : -1;
                 return 0;
             });
-            
+            
             moviesContainer.innerHTML = '';
-            
+            
             filteredMovies.forEach((movie) => {
                 const movieCard = createMovieCard(movie);
                 moviesContainer.appendChild(movieCard);
@@ -543,7 +534,7 @@
         function setView(view) {
             const moviesContainer = document.getElementById('movies-container');
             isManualViewSelected = true;
-            
+            
             // Clear existing classes
             moviesContainer.classList.remove('grid', 'flex', 'grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-5', 'flex-col');
             moviesContainer.classList.add('gap-6'); // Add default gap back
@@ -558,7 +549,7 @@
                 moviesContainer.classList.add('grid', 'grid-cols-5');
             }
         }
-        
+        
         function openModalForAdd() {
             currentEditingMovieId = null;
             const form = document.getElementById('movie-form');
@@ -575,7 +566,7 @@
         function openModalForEdit(movieId) {
             currentEditingMovieId = movieId;
             const movie = allMovies.find(m => m.id === movieId);
-            
+            
             document.getElementById('modal-title').textContent = 'Edit Movie';
             document.getElementById('save-movie-btn').textContent = 'Save Changes';
             document.getElementById('delete-movie-btn').style.display = 'block';
@@ -590,7 +581,7 @@
             document.getElementById('movie-imdb').value = movie.imdb;
             document.getElementById('movie-media').value = movie.media;
             document.getElementById('movie-image-url').value = movie.imageUrl || '';
-            
+            
             document.getElementById('delete-movie-btn').onclick = () => {
                 if (confirm("Are you sure you want to delete this movie?")) {
                     deleteMovie(movieId);
@@ -612,7 +603,7 @@
 
         async function handleFormSubmit(event) {
             event.preventDefault();
-            
+            
             const title = document.getElementById('movie-title').value;
             const year = parseInt(document.getElementById('movie-year').value);
             const rating = document.getElementById('movie-rating').value;
@@ -623,9 +614,9 @@
             const imdb = parseFloat(document.getElementById('movie-imdb').value) || 0;
             const media = document.getElementById('movie-media').value;
             const imageUrl = document.getElementById('movie-image-url').value || null;
-            
+            
             const newOrUpdatedMovie = { title, year, rating, length, genre, tomatometer, audienceScore, imdb, media, imageUrl };
-            
+            
             try {
                 if (currentEditingMovieId) {
                     await setDoc(doc(moviesCollectionRef, currentEditingMovieId), newOrUpdatedMovie);
@@ -635,10 +626,10 @@
             } catch (e) {
                 console.error("Error adding/updating document: ", e);
             }
-            
+            
             closeModal();
         }
-        
+        
         async function deleteMovie(movieId) {
             if (confirm("Are you sure you want to delete this movie?")) {
                 try {
@@ -679,7 +670,7 @@
                     loginButton.style.display = 'none';
                     signOutButton.style.display = 'block';
                     authenticatedContent.style.display = 'block';
-                    
+                    
                     moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
 
                     onSnapshot(moviesCollectionRef, (snapshot) => {
@@ -696,13 +687,13 @@
                     signOutButton.style.display = 'none';
                     authenticatedContent.style.display = 'none';
                     statusIndicator.innerHTML = 'Please sign in to view your collection.';
-                    
+                    
                     allMovies = [];
                     filterAndSortMovies();
                 }
             });
         }
-        
+        
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('add-movie-btn').addEventListener('click', openModalForAdd);
             document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
@@ -719,7 +710,7 @@
                     });
                     event.target.classList.remove('bg-gray-200', 'text-gray-800');
                     event.target.classList.add('bg-blue-500', 'text-white');
-                    
+                    
                     const viewType = event.target.dataset.view;
                     setView(viewType);
                     filterAndSortMovies(); // Re-render the movies with the new view
@@ -740,7 +731,7 @@
                 document.getElementById('filter-by-genre').value = 'all';
                 document.getElementById('search-input').value = '';
 
-                isAscending = true; 
+                isAscending = true; 
                 document.getElementById('sort-order-text').textContent = 'Sort Ascending';
 
                 setView('grid-4');
@@ -754,7 +745,7 @@
                 filterAndSortMovies();
             });
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
-            
+            
             setView('grid-4');
 
             init();
