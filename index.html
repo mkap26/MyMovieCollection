@@ -727,24 +727,46 @@
             }
         }
 
-        // NEW: Export Function
+        // NEW: Export to CSV Function
         function exportData() {
+            // Get all movie data, excluding the id
             const moviesToExport = allMovies.map(({ id, ...rest }) => rest);
-            const jsonString = JSON.stringify(moviesToExport, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
+            
+            if (moviesToExport.length === 0) {
+                alert("No movies to export!");
+                return;
+            }
+
+            // Get headers from the first movie object
+            const headers = Object.keys(moviesToExport[0]).join(',');
+            
+            // Map each movie object to a CSV row string
+            const csvRows = moviesToExport.map(movie => 
+                Object.values(movie).map(value => {
+                    // Handle values that might contain commas or quotes
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                }).join(',')
+            );
+            
+            const csvString = [headers, ...csvRows].join('\n');
+            
+            const blob = new Blob([csvString], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
         
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'movie_collection.json';
+            a.download = 'movie_collection.csv';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            console.log('Export complete.');
+            console.log('Export to CSV complete.');
         }
 
-        // NEW: Import Function
+        // NEW: Import from CSV Function
         async function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -752,13 +774,34 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const json = JSON.parse(e.target.result);
-                    if (!Array.isArray(json)) {
-                        alert('Invalid JSON file format. The file must be an array of movie objects.');
+                    const csvText = e.target.result;
+                    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length < 2) {
+                        alert('Invalid CSV file. It must contain a header and at least one row of data.');
                         return;
                     }
 
-                    for (const movie of json) {
+                    const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+                    const importedMovies = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = lines[i].split(',').map(val => val.trim().replace(/"/g, ''));
+                        const movie = {};
+                        headers.forEach((header, index) => {
+                            let value = values[index];
+                            // Attempt to cast values to their correct type
+                            if (header === 'year' || header === 'length' || header === 'tomatometer' || header === 'audienceScore') {
+                                movie[header] = parseInt(value) || 0;
+                            } else if (header === 'imdb') {
+                                movie[header] = parseFloat(value) || 0;
+                            } else {
+                                movie[header] = value;
+                            }
+                        });
+                        importedMovies.push(movie);
+                    }
+
+                    for (const movie of importedMovies) {
                         await addDoc(moviesCollectionRef, movie);
                     }
                     alert('Movies imported successfully!');
@@ -819,7 +862,7 @@
             
             const importInput = document.createElement('input');
             importInput.type = 'file';
-            importInput.accept = 'application/json';
+            importInput.accept = 'text/csv';
             importInput.style.display = 'none';
             importInput.addEventListener('change', importData);
             document.body.appendChild(importInput);
