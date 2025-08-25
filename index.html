@@ -171,18 +171,23 @@
 <body class="p-4 sm:p-8">
 
     <main class="max-w-7xl mx-auto">
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">My Movie Collection</h1>
-
-        <div class="flex justify-center items-center mb-6">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">My Movie Collection</h1>
+            <div id="user-info" class="flex items-center space-x-2" style="display: none;">
+                <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
+                <button id="signout-btn" class="px-3 py-1 text-sm bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200">
+                    Sign Out
+                </button>
+            </div>
             <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
                 Sign In with Google
             </button>
-            <button id="signout-btn" class="px-6 py-3 bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200" style="display: none;">
-                Sign Out
-            </button>
-        </div>
+        </header>
 
         <div id="authenticated-content" style="display: none;">
+             <div id="status-indicator" class="bg-white p-2 rounded-xl shadow-md text-gray-700 text-center mb-4 text-sm sm:text-base">
+                Please sign in to view your collection.
+            </div>
             <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
                 
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
@@ -245,10 +250,6 @@
                     </button>
                 </div>
                 
-            </div>
-            
-            <div id="status-indicator" class="bg-white p-4 rounded-xl shadow-md text-gray-700 text-center mb-6">
-                Please sign in to view your collection.
             </div>
             
             <div class="flex justify-center mb-6">
@@ -351,7 +352,6 @@
         let currentEditingMovieId = null;
         let currentView = 'grid';
 
-        // Consistent headers for CSV export/import
         const CSV_HEADERS = ["title", "year", "rating", "length", "genre", "tomatometer", "audienceScore", "imdb", "media", "imageUrl"];
 
         const defaultMoviesData = `
@@ -790,14 +790,16 @@
                     
                     const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(header => header.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                     
-                    // Use a query to check for existing movies by title
-                    const existingMoviesQuery = await getDocs(moviesCollectionRef);
                     const existingMoviesMap = new Map();
-                    existingMoviesQuery.forEach(doc => {
-                        existingMoviesMap.set(doc.data().title, doc.id);
-                    });
-
-                    const importedMovies = [];
+                    if (allMovies) {
+                        allMovies.forEach(movie => {
+                            existingMoviesMap.set(movie.title, movie.id);
+                        });
+                    }
+                    
+                    let importedCount = 0;
+                    let updatedCount = 0;
+                    
                     for (let i = 1; i < lines.length; i++) {
                         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                         
@@ -817,25 +819,26 @@
                                 movie[header] = value;
                             }
                         });
-                        importedMovies.push(movie);
-                    }
-
-                    if (importedMovies.length === 0) {
-                        alert('No valid movie data found in the CSV file.');
-                        return;
-                    }
-
-                    for (const movie of importedMovies) {
+                        
+                        // Check if a movie with this title already exists
                         const existingId = existingMoviesMap.get(movie.title);
                         if (existingId) {
                             // Update existing movie
                             await setDoc(doc(moviesCollectionRef, existingId), movie);
+                            updatedCount++;
                         } else {
                             // Add new movie
                             await addDoc(moviesCollectionRef, movie);
+                            importedCount++;
                         }
                     }
-                    alert('Movies imported and updated successfully!');
+
+                    if (importedCount === 0 && updatedCount === 0) {
+                        alert('No valid movie data found in the CSV file.');
+                    } else {
+                         alert(`Import complete! ${importedCount} movies added, ${updatedCount} movies updated.`);
+                    }
+                   
                 } catch (error) {
                     console.error("Error importing data:", error);
                     alert('Failed to import movies. Please check the file format and try again.');
@@ -850,11 +853,14 @@
                 const signOutButton = document.getElementById('signout-btn');
                 const authenticatedContent = document.getElementById('authenticated-content');
                 const statusIndicator = document.getElementById('status-indicator');
+                const userInfoDiv = document.getElementById('user-info');
+                const userEmailSpan = document.getElementById('user-email');
 
                 if (user) {
                     console.log("User is authenticated:", user.uid);
                     loginButton.style.display = 'none';
-                    signOutButton.style.display = 'block';
+                    userInfoDiv.style.display = 'flex';
+                    userEmailSpan.textContent = user.email;
                     authenticatedContent.style.display = 'block';
                     
                     moviesCollectionRef = collection(db, `users/${user.uid}/movies`);
@@ -870,7 +876,7 @@
                 } else {
                     console.log("No user is authenticated.");
                     loginButton.style.display = 'block';
-                    signOutButton.style.display = 'none';
+                    userInfoDiv.style.display = 'none';
                     authenticatedContent.style.display = 'none';
                     statusIndicator.innerHTML = 'Please sign in to view your collection.';
                     
@@ -888,7 +894,6 @@
             document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
             document.getElementById('signout-btn').addEventListener('click', handleSignOut);
             
-            // NEW: Event listeners for import/export buttons
             document.getElementById('export-btn').addEventListener('click', exportData);
             
             const importInput = document.createElement('input');
