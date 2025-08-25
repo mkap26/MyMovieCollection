@@ -88,12 +88,16 @@
         /* Specific styles for the front card layout */
         .movie-card-front {
             padding: 0;
+            display: flex;
+            flex-direction: column;
         }
         .front-content {
             padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            flex-grow: 1; /* Allows content to take up remaining space */
+            overflow: hidden;
         }
         
         /* CSS for the movie poster image */
@@ -420,7 +424,7 @@
 
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
                     </svg>
                 `;
@@ -445,11 +449,11 @@
                 
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
                     </svg>
                 `;
-                editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200', 'z-20');
+                editButton.classList.add('absolute', 'top-2', 'right-2', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200', 'z-20');
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openModalForEdit(movie.id);
