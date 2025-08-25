@@ -124,7 +124,7 @@
             position: relative;
         }
         .movie-list-item:hover {
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            box-shadow: 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         /* Responsive adjustments for list view content */
@@ -727,9 +727,21 @@
             }
         }
 
+        // CSV helper function to escape strings
+        function escapeCsv(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+            // Convert to string and replace double quotes with two double quotes
+            const stringValue = String(value);
+            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+            }
+            return stringValue;
+        }
+
         // NEW: Export to CSV Function
         function exportData() {
-            // Get all movie data, excluding the id
             const moviesToExport = allMovies.map(({ id, ...rest }) => rest);
             
             if (moviesToExport.length === 0) {
@@ -737,23 +749,15 @@
                 return;
             }
 
-            // Get headers from the first movie object
-            const headers = Object.keys(moviesToExport[0]).join(',');
+            const headers = Object.keys(moviesToExport[0]).map(header => escapeCsv(header)).join(',');
             
-            // Map each movie object to a CSV row string
             const csvRows = moviesToExport.map(movie => 
-                Object.values(movie).map(value => {
-                    // Handle values that might contain commas or quotes
-                    if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-                        return `"${value.replace(/"/g, '""')}"`;
-                    }
-                    return value;
-                }).join(',')
+                Object.values(movie).map(value => escapeCsv(value)).join(',')
             );
             
             const csvString = [headers, ...csvRows].join('\n');
             
-            const blob = new Blob([csvString], { type: 'text/csv' });
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
         
             const a = document.createElement('a');
@@ -780,16 +784,22 @@
                         alert('Invalid CSV file. It must contain a header and at least one row of data.');
                         return;
                     }
-
+                    
                     const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
                     const importedMovies = [];
 
                     for (let i = 1; i < lines.length; i++) {
-                        const values = lines[i].split(',').map(val => val.trim().replace(/"/g, ''));
+                        const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+                        
+                        // Basic validation to ensure row length matches headers
+                        if (values.length !== headers.length) {
+                             console.warn(`Skipping malformed row: "${lines[i]}"`);
+                             continue;
+                        }
+
                         const movie = {};
                         headers.forEach((header, index) => {
                             let value = values[index];
-                            // Attempt to cast values to their correct type
                             if (header === 'year' || header === 'length' || header === 'tomatometer' || header === 'audienceScore') {
                                 movie[header] = parseInt(value) || 0;
                             } else if (header === 'imdb') {
@@ -801,13 +811,18 @@
                         importedMovies.push(movie);
                     }
 
+                    if (importedMovies.length === 0) {
+                        alert('No valid movie data found in the CSV file.');
+                        return;
+                    }
+
                     for (const movie of importedMovies) {
                         await addDoc(moviesCollectionRef, movie);
                     }
                     alert('Movies imported successfully!');
                 } catch (error) {
                     console.error("Error importing data:", error);
-                    alert('Failed to import movies. Please check the file format.');
+                    alert('Failed to import movies. Please check the file format and try again.');
                 }
             };
             reader.readAsText(file);
