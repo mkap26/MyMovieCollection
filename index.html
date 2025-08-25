@@ -351,6 +351,9 @@
         let currentEditingMovieId = null;
         let currentView = 'grid';
 
+        // Consistent headers for CSV export/import
+        const CSV_HEADERS = ["title", "year", "rating", "length", "genre", "tomatometer", "audienceScore", "imdb", "media", "imageUrl"];
+
         const defaultMoviesData = `
         [{ "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
             { "title": "American Sniper", "year": 2014, "tomatometer": 34, "audienceScore": 85, "imdb": 7.3, "media": "4K Ultra HD", "rating": "R", "length": 133, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper" },
@@ -732,12 +735,14 @@
             if (value === null || value === undefined) {
                 return '';
             }
-            // Convert to string and replace double quotes with two double quotes
             const stringValue = String(value);
-            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-                return `"${stringValue.replace(/"/g, '""')}"`;
+            // Replace double quotes with two double quotes
+            const escapedValue = stringValue.replace(/"/g, '""');
+            // Enclose the value in double quotes if it contains a comma or newline
+            if (escapedValue.includes(',') || escapedValue.includes('\n')) {
+                return `"${escapedValue}"`;
             }
-            return stringValue;
+            return escapedValue;
         }
 
         // NEW: Export to CSV Function
@@ -749,10 +754,10 @@
                 return;
             }
 
-            const headers = Object.keys(moviesToExport[0]).map(header => escapeCsv(header)).join(',');
+            const headers = CSV_HEADERS.map(header => escapeCsv(header)).join(',');
             
             const csvRows = moviesToExport.map(movie => 
-                Object.values(movie).map(value => escapeCsv(value)).join(',')
+                CSV_HEADERS.map(header => escapeCsv(movie[header])).join(',')
             );
             
             const csvString = [headers, ...csvRows].join('\n');
@@ -785,13 +790,12 @@
                         return;
                     }
                     
-                    const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+                    const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(header => header.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                     const importedMovies = [];
 
                     for (let i = 1; i < lines.length; i++) {
                         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                         
-                        // Basic validation to ensure row length matches headers
                         if (values.length !== headers.length) {
                              console.warn(`Skipping malformed row: "${lines[i]}"`);
                              continue;
