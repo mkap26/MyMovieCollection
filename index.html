@@ -150,9 +150,7 @@
                 <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
                     <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
                     <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
-                    <button data-view="grid-3" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">3</button>
-                    <button data-view="grid-4" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">4</button>
-                    <button data-view="grid-5" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">5</button>
+                    <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
@@ -175,7 +173,7 @@
                 <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
             </div>
 
-            <div id="movies-container" class="grid gap-6">
+            <div id="movies-container" class="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             </div>
         </div>
     </main>
@@ -270,7 +268,6 @@
         let moviesCollectionRef;
         let allMovies = [];
         let isAscending = true;
-        let isManualViewSelected = false;
         let currentEditingMovieId = null;
         
         const defaultMoviesData = `[
@@ -288,7 +285,8 @@
         
         function createMovieCard(movie) {
             const cardContainer = document.createElement('div');
-            cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer');
+            // Use the responsive grid classes directly on the container
+            cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer', 'min-h-[400px]');
 
             const card = document.createElement('div');
             card.classList.add('movie-card');
@@ -468,18 +466,14 @@
 
         function setView(view) {
             const moviesContainer = document.getElementById('movies-container');
-            isManualViewSelected = true;
             
-            moviesContainer.classList.remove('grid-cols-1', 'grid-cols-2', 'grid-cols-3', 'grid-cols-4', 'grid-cols-5', 'flex', 'flex-col');
+            moviesContainer.classList.remove('grid', 'flex', 'flex-col', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             
             if (view === 'list') {
-                moviesContainer.classList.add('flex', 'flex-col');
-            } else if (view === 'grid-3') {
-                moviesContainer.classList.add('grid', 'grid-cols-3');
-            } else if (view === 'grid-4') {
-                moviesContainer.classList.add('grid', 'grid-cols-4');
-            } else if (view === 'grid-5') {
-                moviesContainer.classList.add('grid', 'grid-cols-5');
+                moviesContainer.classList.add('flex', 'flex-col', 'space-y-4');
+                // Adjust card style for list view if needed
+            } else if (view === 'grid') {
+                moviesContainer.classList.add('grid', 'gap-6', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             }
         }
         
@@ -524,7 +518,7 @@
 
             document.getElementById('movie-modal-backdrop').classList.replace('opacity-0', 'opacity-100');
             document.getElementById('movie-modal-backdrop').classList.replace('pointer-events-none', 'pointer-events-auto');
-            document.getElementById('movie-modal').classList.replace('scale-100', 'scale-95');
+            document.getElementById('movie-modal').classList.replace('scale-95', 'scale-100');
         }
 
         function closeModal() {
@@ -666,19 +660,23 @@
                 isAscending = true; 
                 document.getElementById('sort-order-text').textContent = 'Sort Ascending';
 
-                setView('grid-4');
+                setView('grid'); // Default view is now 'grid' instead of 'grid-4'
                 document.querySelectorAll('.view-btn').forEach(btn => {
                     btn.classList.remove('bg-blue-500', 'text-white');
                     btn.classList.add('bg-gray-200', 'text-gray-800');
                 });
-                document.querySelector('[data-view="grid-4"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('[data-view="grid-4"]').classList.add('bg-blue-500', 'text-white');
+                document.querySelector('[data-view="grid"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('[data-view="grid"]').classList.add('bg-blue-500', 'text-white');
 
                 filterAndSortMovies();
             });
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
-            setView('grid-4');
+            // Set initial view to 'grid' on load
+            setView('grid');
+            document.querySelector('[data-view="grid"]').classList.remove('bg-gray-200', 'text-gray-800');
+            document.querySelector('[data-view="grid"]').classList.add('bg-blue-500', 'text-white');
+
 
             init();
         });
