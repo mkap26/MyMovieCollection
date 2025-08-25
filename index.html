@@ -90,9 +90,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            position: relative;
         }
-
         .front-content-overlay {
             position: absolute;
             bottom: 0;
@@ -102,6 +100,7 @@
             background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
             color: #ffffff;
             border-radius: 0 0 0.75rem 0.75rem;
+            box-sizing: border-box; /* Ensures padding is included in width calculation */
         }
         
         /* CSS for the movie poster image */
@@ -237,6 +236,12 @@
                     </button>
                     <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
                         Reset
+                    </button>
+                    <button id="import-btn" class="w-full sm:w-auto px-4 py-2 bg-purple-500 text-white font-semibold rounded-md shadow hover:bg-purple-600 transition-colors duration-200">
+                        Import
+                    </button>
+                    <button id="export-btn" class="w-full sm:w-auto px-4 py-2 bg-indigo-500 text-white font-semibold rounded-md shadow hover:bg-indigo-600 transition-colors duration-200">
+                        Export
                     </button>
                 </div>
                 
@@ -471,30 +476,13 @@
                 cardFront.appendChild(image);
 
                 const frontContent = document.createElement('div');
-                frontContent.classList.add('front-content');
+                frontContent.classList.add('front-content-overlay');
 
                 const titleHeading = document.createElement('h2');
-                titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900', 'mb-2');
+                titleHeading.classList.add('text-lg', 'font-semibold', 'text-white', 'mb-1');
                 titleHeading.textContent = `${movie.title} (${movie.year})`;
                 frontContent.appendChild(titleHeading);
 
-                const scoresDiv = document.createElement('div');
-                scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
-                
-                const tomatometerSpan = document.createElement('span');
-                tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
-                scoresDiv.appendChild(tomatometerSpan);
-
-                const audienceScoreSpan = document.createElement('span');
-                audienceScoreSpan.textContent = `🍿 Audience: ${movie.audienceScore}%`;
-                scoresDiv.appendChild(audienceScoreSpan);
-
-                const imdbSpan = document.createElement('span');
-                imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
-                scoresDiv.appendChild(imdbSpan);
-                
-                frontContent.appendChild(scoresDiv);
-                
                 cardFront.appendChild(frontContent);
 
 
@@ -739,6 +727,49 @@
             }
         }
 
+        // NEW: Export Function
+        function exportData() {
+            const moviesToExport = allMovies.map(({ id, ...rest }) => rest);
+            const jsonString = JSON.stringify(moviesToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+        
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'movie_collection.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log('Export complete.');
+        }
+
+        // NEW: Import Function
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (!Array.isArray(json)) {
+                        alert('Invalid JSON file format. The file must be an array of movie objects.');
+                        return;
+                    }
+
+                    for (const movie of json) {
+                        await addDoc(moviesCollectionRef, movie);
+                    }
+                    alert('Movies imported successfully!');
+                } catch (error) {
+                    console.error("Error importing data:", error);
+                    alert('Failed to import movies. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
         function init() {
             onAuthStateChanged(auth, async (user) => {
                 const loginButton = document.getElementById('login-btn');
@@ -782,6 +813,20 @@
 
             document.getElementById('login-btn').addEventListener('click', signInWithGoogle);
             document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+            
+            // NEW: Event listeners for import/export buttons
+            document.getElementById('export-btn').addEventListener('click', exportData);
+            
+            const importInput = document.createElement('input');
+            importInput.type = 'file';
+            importInput.accept = 'application/json';
+            importInput.style.display = 'none';
+            importInput.addEventListener('change', importData);
+            document.body.appendChild(importInput);
+
+            document.getElementById('import-btn').addEventListener('click', () => {
+                importInput.click();
+            });
 
             document.querySelectorAll('.view-btn').forEach(button => {
                 button.addEventListener('click', (event) => {
