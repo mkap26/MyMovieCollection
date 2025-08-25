@@ -285,14 +285,12 @@
         
         function createMovieCard(movie) {
             const cardContainer = document.createElement('div');
-            // Use the responsive grid classes directly on the container
             cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer', 'min-h-[400px]');
 
             const card = document.createElement('div');
             card.classList.add('movie-card');
             card.setAttribute('data-movie-id', movie.id);
 
-            // Front of the card (Original Design)
             const cardFront = document.createElement('div');
             cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
             
@@ -345,7 +343,6 @@
             cardFront.appendChild(mediaDiv);
 
 
-            // Back of the card (Organized Details)
             const cardBack = document.createElement('div');
             cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
             
@@ -440,11 +437,10 @@
                 if (sortBy === 'title' || sortBy === 'rating' || sortBy === 'genre') {
                     aValue = a[sortBy];
                     bValue = b[sortBy];
-                    // Handle missing values and localeCompare for strings
                     aValue = aValue ? aValue.toLowerCase() : '';
                     bValue = bValue ? bValue.toLowerCase() : '';
                     return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-                } else { // Numbers: year, length, scores
+                } else {
                     aValue = a[sortBy] || 0;
                     bValue = b[sortBy] || 0;
                 }
@@ -471,7 +467,6 @@
             
             if (view === 'list') {
                 moviesContainer.classList.add('flex', 'flex-col', 'space-y-4');
-                // Adjust card style for list view if needed
             } else if (view === 'grid') {
                 moviesContainer.classList.add('grid', 'gap-6', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             }
@@ -660,7 +655,7 @@
                 isAscending = true; 
                 document.getElementById('sort-order-text').textContent = 'Sort Ascending';
 
-                setView('grid'); // Default view is now 'grid' instead of 'grid-4'
+                setView('grid');
                 document.querySelectorAll('.view-btn').forEach(btn => {
                     btn.classList.remove('bg-blue-500', 'text-white');
                     btn.classList.add('bg-gray-200', 'text-gray-800');
@@ -672,12 +667,6 @@
             });
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
-            // Set initial view to 'grid' on load
-            setView('grid');
-            document.querySelector('[data-view="grid"]').classList.remove('bg-gray-200', 'text-gray-800');
-            document.querySelector('[data-view="grid"]').classList.add('bg-blue-500', 'text-white');
-
-
             init();
         });
     </script>
