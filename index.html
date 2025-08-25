@@ -41,30 +41,36 @@
         }
         
         /* CSS for the flip animation */
-        /* Corrected flip container logic */
+        /* This container maintains the grid item's space */
         .movie-card-container {
-            perspective: 1000px;
-            height: 100%;
             position: relative;
+            width: 100%;
+            padding-bottom: 150%; /* Maintains a 2:3 aspect ratio */
+            perspective: 1000px;
         }
         
+        /* This wrapper is absolutely positioned inside the container */
         .movie-card-wrapper {
+            position: absolute;
             width: 100%;
             height: 100%;
+            top: 0;
+            left: 0;
             transition: transform 0.6s;
             transform-style: preserve-3d;
-            position: relative;
+            cursor: pointer;
         }
         
         .movie-card-wrapper.flipped {
             transform: rotateY(180deg);
-            z-index: 10;
         }
         
         .movie-card-front, .movie-card-back {
             position: absolute;
             width: 100%;
             height: 100%;
+            top: 0;
+            left: 0;
             backface-visibility: hidden;
             display: flex;
             flex-direction: column;
@@ -80,13 +86,7 @@
         /* End of CSS for flip animation */
 
         /* CSS to maintain a 2:3 aspect ratio for movie posters */
-        .poster-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 150%;
-            overflow: hidden;
-        }
-        .poster-container img {
+        .poster-image {
             position: absolute;
             top: 0;
             left: 0;
@@ -446,13 +446,11 @@
                 });
                 cardFront.appendChild(editButton);
 
-                const imageContainer = document.createElement('div');
-                imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
-                const movieImage = document.createElement('img');
-                movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
-                movieImage.alt = `Poster for ${movie.title}`;
-                imageContainer.appendChild(movieImage);
-                cardFront.appendChild(imageContainer);
+                const image = document.createElement('img');
+                image.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
+                image.alt = `Poster for ${movie.title}`;
+                image.classList.add('poster-image', 'rounded-md', 'mb-2');
+                cardFront.appendChild(image);
 
                 const titleHeading = document.createElement('h2');
                 titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900');
