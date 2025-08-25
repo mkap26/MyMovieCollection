@@ -90,6 +90,34 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* Specific styles for the List View */
+        .movie-list-item {
+            display: flex;
+            align-items: center;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        .movie-list-item:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        /* Mobile-first approach for list view item */
+        .movie-list-item-mobile {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .movie-list-item-desktop {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr 1fr 1fr; /* Adjust as needed */
+                gap: 1rem;
+                align-items: center;
+            }
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -249,8 +277,6 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-        // IMPORTANT: For local development, hardcode your Firebase config.
-        // Replace this with your actual configuration.
         const firebaseConfig = {
             apiKey: "AIzaSyBf9ZHgLHkIIIH9-C9etHGMf8xTno2K9u8",
             authDomain: "my-movie-collection-1ed74.firebaseapp.com",
@@ -269,7 +295,8 @@
         let allMovies = [];
         let isAscending = true;
         let currentEditingMovieId = null;
-        
+        let currentView = 'grid'; // Track the current view
+
         const defaultMoviesData = `[
             { "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
             { "title": "American Sniper", "year": 2014, "tomatometer": 34, "audienceScore": 85, "imdb": 7.3, "media": "4K Ultra HD", "rating": "R", "length": 133, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper" },
@@ -282,110 +309,136 @@
             { "title": "The Dark Knight", "year": 2008, "tomatometer": 94, "audienceScore": 94, "imdb": 9.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 152, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight" },
             { "title": "Pulp Fiction", "year": 1994, "tomatometer": 92, "audienceScore": 96, "imdb": 8.9, "media": "Blu-Ray", "rating": "R", "length": 154, "genre": "Crime", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Pulp+Fiction" }
         ]`;
-        
-        function createMovieCard(movie) {
-            const cardContainer = document.createElement('div');
-            cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer', 'min-h-[400px]');
 
-            const card = document.createElement('div');
-            card.classList.add('movie-card');
-            card.setAttribute('data-movie-id', movie.id);
+        function createMovieCard(movie, isListView = false) {
+            if (isListView) {
+                const listItem = document.createElement('div');
+                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4');
+                listItem.setAttribute('data-movie-id', movie.id);
+                listItem.innerHTML = `
+                    <div class="flex-grow flex items-center space-x-4">
+                        <span class="text-sm font-bold text-gray-900 min-w-[200px] whitespace-nowrap overflow-hidden text-ellipsis">${movie.title} (${movie.year})</span>
+                        <span class="text-xs text-gray-500 hidden sm:block">${movie.media}</span>
+                        <span class="text-xs text-gray-500 hidden sm:block">${movie.genre}</span>
+                        <span class="text-xs text-gray-500 hidden md:block">🍅 ${movie.tomatometer}%</span>
+                        <span class="text-xs text-gray-500 hidden md:block">⭐ ${movie.imdb}/10</span>
+                    </div>
+                    <button class="absolute top-1/2 -translate-y-1/2 right-4 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
+                        </svg>
+                    </button>
+                `;
+                listItem.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openModalForEdit(movie.id);
+                });
+                return listItem;
+            } else {
+                // Original Grid View Card
+                const cardContainer = document.createElement('div');
+                cardContainer.classList.add('movie-card-container', 'w-full', 'h-full', 'cursor-pointer');
 
-            const cardFront = document.createElement('div');
-            cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
-            
-            const editButton = document.createElement('button');
-            editButton.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
-                </svg>
-            `;
-            editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200');
-            editButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openModalForEdit(movie.id);
-            });
-            cardFront.appendChild(editButton);
+                const card = document.createElement('div');
+                card.classList.add('movie-card');
+                card.setAttribute('data-movie-id', movie.id);
 
-            const imageContainer = document.createElement('div');
-            imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
-            const movieImage = document.createElement('img');
-            movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
-            movieImage.alt = `Poster for ${movie.title}`;
-            imageContainer.appendChild(movieImage);
-            cardFront.appendChild(imageContainer);
+                const cardFront = document.createElement('div');
+                cardFront.classList.add('movie-card-front', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-2', 'relative');
+                
+                const editButton = document.createElement('button');
+                editButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
+                    </svg>
+                `;
+                editButton.classList.add('absolute', 'top-4', 'right-4', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200');
+                editButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openModalForEdit(movie.id);
+                });
+                cardFront.appendChild(editButton);
 
-            const titleHeading = document.createElement('h2');
-            titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900');
-            titleHeading.textContent = `${movie.title} (${movie.year})`;
-            cardFront.appendChild(titleHeading);
+                const imageContainer = document.createElement('div');
+                imageContainer.classList.add('poster-container', 'rounded-md', 'mb-2');
+                const movieImage = document.createElement('img');
+                movieImage.src = movie.imageUrl || `https://placehold.co/300x450/e0e0e0/555555?text=${movie.title.replace(/ /g, '+')}`;
+                movieImage.alt = `Poster for ${movie.title}`;
+                imageContainer.appendChild(movieImage);
+                cardFront.appendChild(imageContainer);
 
-            const scoresDiv = document.createElement('div');
-            scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
-            
-            const tomatometerSpan = document.createElement('span');
-            tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
-            scoresDiv.appendChild(tomatometerSpan);
+                const titleHeading = document.createElement('h2');
+                titleHeading.classList.add('text-lg', 'font-semibold', 'text-gray-900');
+                titleHeading.textContent = `${movie.title} (${movie.year})`;
+                cardFront.appendChild(titleHeading);
 
-            const audienceScoreSpan = document.createElement('span');
-            audienceScoreSpan.textContent = `🍿 Audience: ${movie.audienceScore}%`;
-            scoresDiv.appendChild(audienceScoreSpan);
+                const scoresDiv = document.createElement('div');
+                scoresDiv.classList.add('flex', 'flex-wrap', 'gap-4', 'text-sm', 'text-gray-600');
+                
+                const tomatometerSpan = document.createElement('span');
+                tomatometerSpan.textContent = `🍅 Tomatometer: ${movie.tomatometer}%`;
+                scoresDiv.appendChild(tomatometerSpan);
 
-            const imdbSpan = document.createElement('span');
-            imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
-            scoresDiv.appendChild(imdbSpan);
-            
-            cardFront.appendChild(scoresDiv);
+                const audienceScoreSpan = document.createElement('span');
+                audienceScoreSpan.textContent = `🍿 Audience: ${movie.audienceScore}%`;
+                scoresDiv.appendChild(audienceScoreSpan);
 
-            const mediaDiv = document.createElement('div');
-            mediaDiv.classList.add('mt-auto', 'text-xs', 'font-medium', 'text-gray-500');
-            mediaDiv.textContent = `Media: ${movie.media}`;
-            cardFront.appendChild(mediaDiv);
+                const imdbSpan = document.createElement('span');
+                imdbSpan.textContent = `⭐ IMDb: ${movie.imdb}/10`;
+                scoresDiv.appendChild(imdbSpan);
+                
+                cardFront.appendChild(scoresDiv);
+
+                const mediaDiv = document.createElement('div');
+                mediaDiv.classList.add('mt-auto', 'text-xs', 'font-medium', 'text-gray-500');
+                mediaDiv.textContent = `Media: ${movie.media}`;
+                cardFront.appendChild(mediaDiv);
 
 
-            const cardBack = document.createElement('div');
-            cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
-            
-            const backHeader = document.createElement('div');
-            backHeader.classList.add('flex', 'justify-between', 'items-start', 'gap-4');
-            const backTitle = document.createElement('h2');
-            backTitle.classList.add('text-xl', 'font-bold', 'text-gray-900');
-            backTitle.textContent = movie.title;
-            const backYear = document.createElement('span');
-            backYear.classList.add('text-lg', 'font-medium', 'text-gray-500');
-            backYear.textContent = `(${movie.year})`;
-            backHeader.appendChild(backTitle);
-            backHeader.appendChild(backYear);
-            cardBack.appendChild(backHeader);
+                const cardBack = document.createElement('div');
+                cardBack.classList.add('movie-card-back', 'bg-white', 'p-6', 'rounded-xl', 'shadow-md', 'hover:shadow-lg', 'transition-shadow', 'duration-300', 'flex', 'flex-col', 'space-y-4');
+                
+                const backHeader = document.createElement('div');
+                backHeader.classList.add('flex', 'justify-between', 'items-start', 'gap-4');
+                const backTitle = document.createElement('h2');
+                backTitle.classList.add('text-xl', 'font-bold', 'text-gray-900');
+                backTitle.textContent = movie.title;
+                const backYear = document.createElement('span');
+                backYear.classList.add('text-lg', 'font-medium', 'text-gray-500');
+                backYear.textContent = `(${movie.year})`;
+                backHeader.appendChild(backTitle);
+                backHeader.appendChild(backYear);
+                cardBack.appendChild(backHeader);
 
-            const detailsList = document.createElement('ul');
-            detailsList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
-            detailsList.innerHTML = `
-                <li><strong>Rating:</strong> ${movie.rating || 'N/A'}</li>
-                <li><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</li>
-                <li><strong>Genre:</strong> ${movie.genre || 'N/A'}</li>
-                <li><strong>Media:</strong> ${movie.media}</li>
-            `;
-            cardBack.appendChild(detailsList);
-            
-            const scoresList = document.createElement('ul');
-            scoresList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
-            scoresList.innerHTML = `
-                <li>🍅 <strong>Tomatometer:</strong> ${movie.tomatometer}%</li>
-                <li>🍿 <strong>Audience:</strong> ${movie.audienceScore}%</li>
-                <li>⭐ <strong>IMDb:</strong> ${movie.imdb}/10</li>
-            `;
-            cardBack.appendChild(scoresList);
+                const detailsList = document.createElement('ul');
+                detailsList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
+                detailsList.innerHTML = `
+                    <li><strong>Rating:</strong> ${movie.rating || 'N/A'}</li>
+                    <li><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</li>
+                    <li><strong>Genre:</strong> ${movie.genre || 'N/A'}</li>
+                    <li><strong>Media:</strong> ${movie.media}</li>
+                `;
+                cardBack.appendChild(detailsList);
+                
+                const scoresList = document.createElement('ul');
+                scoresList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
+                scoresList.innerHTML = `
+                    <li>🍅 <strong>Tomatometer:</strong> ${movie.tomatometer}%</li>
+                    <li>🍿 <strong>Audience:</strong> ${movie.audienceScore}%</li>
+                    <li>⭐ <strong>IMDb:</strong> ${movie.imdb}/10</li>
+                `;
+                cardBack.appendChild(scoresList);
 
-            card.appendChild(cardFront);
-            card.appendChild(cardBack);
-            cardContainer.appendChild(card);
-            
-            cardContainer.addEventListener('click', () => {
-                card.classList.toggle('flipped');
-            });
+                card.appendChild(cardFront);
+                card.appendChild(cardBack);
+                cardContainer.appendChild(card);
+                
+                cardContainer.addEventListener('click', () => {
+                    card.classList.toggle('flipped');
+                });
 
-            return cardContainer;
+                return cardContainer;
+            }
         }
 
         function updateStatusIndicator(movies) {
@@ -452,8 +505,9 @@
             
             moviesContainer.innerHTML = '';
             
+            // Render movies based on the current view
             filteredMovies.forEach((movie) => {
-                const movieCard = createMovieCard(movie);
+                const movieCard = createMovieCard(movie, currentView === 'list');
                 moviesContainer.appendChild(movieCard);
             });
 
@@ -461,15 +515,19 @@
         }
 
         function setView(view) {
+            currentView = view;
             const moviesContainer = document.getElementById('movies-container');
             
-            moviesContainer.classList.remove('grid', 'flex', 'flex-col', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
+            moviesContainer.classList.remove('grid', 'flex', 'flex-col', 'gap-6', 'space-y-4', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             
             if (view === 'list') {
                 moviesContainer.classList.add('flex', 'flex-col', 'space-y-4');
             } else if (view === 'grid') {
                 moviesContainer.classList.add('grid', 'gap-6', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             }
+
+            // Re-render movies with the new view style
+            filterAndSortMovies();
         }
         
         function openModalForAdd() {
