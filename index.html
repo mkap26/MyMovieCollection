@@ -97,15 +97,16 @@
             flex-direction: column;
             justify-content: flex-start;
             flex-grow: 1; /* Allows content to take up remaining space */
+            min-height: 100px; /* Ensures there's always space for text */
             overflow: hidden;
         }
         
         /* CSS for the movie poster image */
         .poster-image {
             width: 100%;
-            height: auto; 
-            object-fit: cover;
-            border-radius: 0.75rem 0.75rem 0 0; 
+            height: 100%; /* Make the image fill the container */
+            object-fit: cover; /* This is the key for consistent sizing */
+            border-radius: 0.75rem 0.75rem 0 0;
             flex-shrink: 0;
         }
         
