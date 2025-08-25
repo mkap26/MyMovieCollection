@@ -124,7 +124,7 @@
             position: relative;
         }
         .movie-list-item:hover {
-            box-shadow: 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         /* Responsive adjustments for list view content */
@@ -329,7 +329,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, setDoc, deleteDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBf9ZHgLHkIIIH9-C9etHGMf8xTno2K9u8",
@@ -736,9 +736,7 @@
                 return '';
             }
             const stringValue = String(value);
-            // Replace double quotes with two double quotes
             const escapedValue = stringValue.replace(/"/g, '""');
-            // Enclose the value in double quotes if it contains a comma or newline
             if (escapedValue.includes(',') || escapedValue.includes('\n')) {
                 return `"${escapedValue}"`;
             }
@@ -774,7 +772,7 @@
             URL.revokeObjectURL(url);
             console.log('Export to CSV complete.');
         }
-
+        
         // NEW: Import from CSV Function
         async function importData(event) {
             const file = event.target.files[0];
@@ -791,8 +789,15 @@
                     }
                     
                     const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(header => header.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
-                    const importedMovies = [];
+                    
+                    // Use a query to check for existing movies by title
+                    const existingMoviesQuery = await getDocs(moviesCollectionRef);
+                    const existingMoviesMap = new Map();
+                    existingMoviesQuery.forEach(doc => {
+                        existingMoviesMap.set(doc.data().title, doc.id);
+                    });
 
+                    const importedMovies = [];
                     for (let i = 1; i < lines.length; i++) {
                         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
                         
@@ -821,9 +826,16 @@
                     }
 
                     for (const movie of importedMovies) {
-                        await addDoc(moviesCollectionRef, movie);
+                        const existingId = existingMoviesMap.get(movie.title);
+                        if (existingId) {
+                            // Update existing movie
+                            await setDoc(doc(moviesCollectionRef, existingId), movie);
+                        } else {
+                            // Add new movie
+                            await addDoc(moviesCollectionRef, movie);
+                        }
                     }
-                    alert('Movies imported successfully!');
+                    alert('Movies imported and updated successfully!');
                 } catch (error) {
                     console.error("Error importing data:", error);
                     alert('Failed to import movies. Please check the file format and try again.');
