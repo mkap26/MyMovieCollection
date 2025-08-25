@@ -185,11 +185,16 @@
         </header>
 
         <div id="authenticated-content" style="display: none;">
-             <div id="status-indicator" class="bg-white p-2 rounded-xl shadow-md text-gray-700 text-center mb-4 text-sm sm:text-base">
-                Please sign in to view your collection.
+            <div class="mb-4">
+                <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
             </div>
+
             <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
-                
+                 
+                <div id="status-indicator" class="bg-white p-2 rounded-xl shadow-md text-gray-700 text-center mb-4 text-sm sm:text-base w-full">
+                    Please sign in to view your collection.
+                </div>
+
                 <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
                         <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
@@ -235,7 +240,9 @@
                 </div>
                 
                 <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
-                    <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                    <button id="add-movie-btn" class="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">
+                        Add New Movie
+                    </button>
                     <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
                         <span id="sort-order-text">Sort Ascending</span>
                     </button>
@@ -252,10 +259,6 @@
                 
             </div>
             
-            <div class="flex justify-center mb-6">
-                <button id="add-movie-btn" class="px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">Add New Movie</button>
-            </div>
-
             <div id="movies-container" class="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             </div>
         </div>
