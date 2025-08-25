@@ -75,7 +75,7 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            padding: 1.5rem;
+            padding: 1rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             border-radius: 0.75rem;
             background-color: #ffffff;
@@ -453,7 +453,7 @@
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
                     </svg>
                 `;
-                editButton.classList.add('absolute', 'top-2', 'right-2', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200', 'z-20');
+                editButton.classList.add('absolute', 'top-2', 'left-2', 'p-1', 'rounded-full', 'bg-white', 'hover:bg-gray-100', 'transition-colors', 'duration-200', 'z-20');
                 editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openModalForEdit(movie.id);
