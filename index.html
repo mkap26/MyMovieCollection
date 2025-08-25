@@ -104,18 +104,44 @@
         .movie-list-item:hover {
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
-        /* Mobile-first approach for list view item */
-        .movie-list-item-mobile {
+
+        /* Responsive adjustments for list view content */
+        .list-item-image {
+            width: 50px; /* Small thumbnail size */
+            height: 75px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+            flex-shrink: 0;
+        }
+        .list-item-details {
+            flex-grow: 1;
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap; /* Allows details to wrap on small screens */
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+        .list-item-title {
+            font-weight: 600;
+            color: #1f2937;
+            width: 100%; /* Title always takes full width on mobile */
+        }
+        .list-item-detail {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        .list-item-scores {
+            display: flex;
             gap: 0.5rem;
         }
-        @media (min-width: 640px) { /* sm breakpoint */
-            .movie-list-item-desktop {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr 1fr 1fr; /* Adjust as needed */
-                gap: 1rem;
+        @media (min-width: 640px) {
+            .list-item-details {
+                flex-wrap: nowrap; /* Prevent details from wrapping on larger screens */
+                justify-content: space-between;
                 align-items: center;
+            }
+            .list-item-title {
+                width: auto;
             }
         }
     </style>
@@ -295,7 +321,7 @@
         let allMovies = [];
         let isAscending = true;
         let currentEditingMovieId = null;
-        let currentView = 'grid'; // Track the current view
+        let currentView = 'grid';
 
         const defaultMoviesData = `[
             { "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
@@ -313,26 +339,83 @@
         function createMovieCard(movie, isListView = false) {
             if (isListView) {
                 const listItem = document.createElement('div');
-                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4');
+                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'sm:items-center', 'sm:justify-between');
                 listItem.setAttribute('data-movie-id', movie.id);
-                listItem.innerHTML = `
-                    <div class="flex-grow flex items-center space-x-4">
-                        <span class="text-sm font-bold text-gray-900 min-w-[200px] whitespace-nowrap overflow-hidden text-ellipsis">${movie.title} (${movie.year})</span>
-                        <span class="text-xs text-gray-500 hidden sm:block">${movie.media}</span>
-                        <span class="text-xs text-gray-500 hidden sm:block">${movie.genre}</span>
-                        <span class="text-xs text-gray-500 hidden md:block">🍅 ${movie.tomatometer}%</span>
-                        <span class="text-xs text-gray-500 hidden md:block">⭐ ${movie.imdb}/10</span>
-                    </div>
-                    <button class="absolute top-1/2 -translate-y-1/2 right-4 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
-                        </svg>
-                    </button>
+
+                const leftSection = document.createElement('div');
+                leftSection.classList.add('flex', 'items-center', 'space-x-4', 'w-full', 'sm:w-auto');
+                
+                const image = document.createElement('img');
+                image.src = movie.imageUrl || `https://placehold.co/50x75/e0e0e0/555555?text=No+Image`;
+                image.alt = `Poster for ${movie.title}`;
+                image.classList.add('list-item-image');
+                leftSection.appendChild(image);
+                
+                const title = document.createElement('span');
+                title.textContent = `${movie.title} (${movie.year})`;
+                title.classList.add('list-item-title');
+                leftSection.appendChild(title);
+                
+                listItem.appendChild(leftSection);
+
+                const detailsSection = document.createElement('div');
+                detailsSection.classList.add('list-item-details');
+                
+                const rating = document.createElement('span');
+                rating.textContent = `Rating: ${movie.rating || 'N/A'}`;
+                rating.classList.add('list-item-detail');
+                detailsSection.appendChild(rating);
+                
+                const length = document.createElement('span');
+                length.textContent = `Length: ${movie.length ? `${movie.length} min` : 'N/A'}`;
+                length.classList.add('list-item-detail');
+                detailsSection.appendChild(length);
+                
+                const genre = document.createElement('span');
+                genre.textContent = `Genre: ${movie.genre || 'N/A'}`;
+                genre.classList.add('list-item-detail');
+                detailsSection.appendChild(genre);
+                
+                const media = document.createElement('span');
+                media.textContent = `Media: ${movie.media}`;
+                media.classList.add('list-item-detail');
+                detailsSection.appendChild(media);
+
+                const scoresDiv = document.createElement('div');
+                scoresDiv.classList.add('list-item-scores');
+                
+                const tomatometer = document.createElement('span');
+                tomatometer.textContent = `🍅 ${movie.tomatometer}%`;
+                tomatometer.classList.add('list-item-detail');
+                scoresDiv.appendChild(tomatometer);
+                
+                const audience = document.createElement('span');
+                audience.textContent = `🍿 ${movie.audienceScore}%`;
+                audience.classList.add('list-item-detail');
+                scoresDiv.appendChild(audience);
+                
+                const imdb = document.createElement('span');
+                imdb.textContent = `⭐ ${movie.imdb}/10`;
+                imdb.classList.add('list-item-detail');
+                scoresDiv.appendChild(imdb);
+
+                detailsSection.appendChild(scoresDiv);
+                
+                listItem.appendChild(detailsSection);
+
+                const editButton = document.createElement('button');
+                editButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zm-4.757 1.586l-2.828 2.828-6.172 6.172a2 2 0 00-.586 1.414V17a1 1 0 001 1h4.172a2 2 0 001.414-.586l6.172-6.172-2.828-2.828-6.172 6.172z" />
+                    </svg>
                 `;
-                listItem.querySelector('button').addEventListener('click', (e) => {
+                editButton.classList.add('absolute', 'top-1/2', '-translate-y-1/2', 'right-4', 'p-1', 'opacity-0', 'group-hover:opacity-100', 'transition-opacity', 'duration-200');
+                editButton.addEventListener('click', (e) => {
                     e.stopPropagation();
                     openModalForEdit(movie.id);
                 });
+                listItem.appendChild(editButton);
+                
                 return listItem;
             } else {
                 // Original Grid View Card
@@ -505,7 +588,6 @@
             
             moviesContainer.innerHTML = '';
             
-            // Render movies based on the current view
             filteredMovies.forEach((movie) => {
                 const movieCard = createMovieCard(movie, currentView === 'list');
                 moviesContainer.appendChild(movieCard);
@@ -526,7 +608,6 @@
                 moviesContainer.classList.add('grid', 'gap-6', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             }
 
-            // Re-render movies with the new view style
             filterAndSortMovies();
         }
         
