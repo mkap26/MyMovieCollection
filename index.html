@@ -240,29 +240,33 @@
                 My Movie Collection
                 <div id="status-indicator" class="text-sm font-medium text-gray-600"></div>
             </h1>
-            <div id="user-info" class="flex items-center space-x-2" style="display: none;">
-                <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
-                <button id="signout-btn" class="px-3 py-1 text-sm bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200">
-                    Sign Out
+            <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+                <div id="view-options" class="flex items-center space-x-2">
+                    <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
+                    <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
+                    <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
+                </div>
+                <div id="user-info" class="flex items-center space-x-2" style="display: none;">
+                    <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
+                    <button id="signout-btn" class="px-3 py-1 text-sm bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200">
+                        Sign Out
+                    </button>
+                </div>
+                <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                    Sign In with Google
                 </button>
             </div>
-            <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
-                Sign In with Google
-            </button>
         </header>
 
         <div id="authenticated-content" style="display: none;">
-            
             <div class="mb-4">
                 <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
             </div>
-
             <div class="flex justify-center mb-6">
                 <button id="toggle-filters-btn" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
                     Filter & Sort
                 </button>
             </div>
-
             <div id="filter-menu-wrapper" class="hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
                     <span class="text-gray-700 font-medium whitespace-nowrap mb-2 block">Filter by Genre:</span>
@@ -272,7 +276,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -288,7 +291,6 @@
                                 <option value="imdb">IMDb Score</option>
                             </select>
                         </div>
-                        
                         <div class="flex items-center space-x-2 w-full sm:w-auto">
                             <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
                             <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
@@ -299,13 +301,6 @@
                             </select>
                         </div>
                     </div>
-
-                    <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
-                        <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
-                        <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
-                        <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
-                    </div>
-                    
                     <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
                         <button id="add-movie-btn" class="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">
                             Add New Movie
@@ -1016,6 +1011,7 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
+            moviesContainer = document.getElementById('movies-container');
             document.getElementById('add-movie-btn').addEventListener('click', openModalForAdd);
             document.getElementById('cancel-modal-btn').addEventListener('click', closeModal);
             document.getElementById('movie-form').addEventListener('submit', handleFormSubmit);
@@ -1070,7 +1066,7 @@
                     btn.classList.add('bg-gray-200', 'text-gray-800');
                 });
                 document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('[data-view="grid"]').classList.add('bg-blue-500', 'text-white');
+                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
 
                 document.getElementById('search-input').value = '';
 
