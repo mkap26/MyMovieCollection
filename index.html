@@ -295,11 +295,6 @@
                             <label for="filter-by-genre" class="text-gray-700 font-medium whitespace-nowrap">Filter by Genre:</label>
                             <select id="filter-by-genre" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                                 <option value="all">All</option>
-                                <option value="Sci-Fi">Sci-Fi</option>
-                                <option value="Action">Action</option>
-                                <option value="Drama">Drama</option>
-                                <option value="Crime">Crime</option>
-                                <option value="Not Rated">Not Rated</option>
                             </select>
                         </div>
                     </div>
@@ -363,7 +358,7 @@
                     <input type="number" id="movie-length" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
-                    <label for="movie-genre" class="block text-sm font-medium text-gray-700">Genre</label>
+                    <label for="movie-genre" class="block text-sm font-medium text-gray-700">Genre (Comma-separated)</label>
                     <input type="text" id="movie-genre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
@@ -429,19 +424,20 @@
         const CSV_HEADERS = ["title", "year", "rating", "length", "genre", "tomatometer", "audienceScore", "imdb", "media", "imageUrl"];
 
         const defaultMoviesData = `
-        [{ "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
-            { "title": "American Sniper", "year": 2014, "tomatometer": 34, "audienceScore": 85, "imdb": 7.3, "media": "4K Ultra HD", "rating": "R", "length": 133, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper" },
-            { "title": "Back to the Future", "year": 1985, "tomatometer": 93, "audienceScore": 95, "imdb": 8.5, "media": "4K Ultra HD", "rating": "PG", "length": 116, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Back+to+the+Future" },
-            { "title": "Batman Begins", "year": 2005, "tomatometer": 84, "audienceScore": 89, "imdb": 8.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 140, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+Begins" },
-            { "title": "Dune (2021)", "year": 2021, "tomatometer": 83, "audienceScore": 90, "imdb": 8.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 155, "genre": "Sci-Fi", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Dune" },
-            { "title": "Gladiator", "year": 2000, "tomatometer": 76, "audienceScore": 86, "imdb": 8.5, "media": "DVD", "rating": "R", "length": 155, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Gladiator" },
-            { "title": "The Departed", "year": 2006, "tomatometer": 91, "audienceScore": 94, "imdb": 8.5, "media": "Blu-Ray", "rating": "R", "length": 151, "genre": "Crime", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Departed" },
-            { "title": "The Shawshank Redemption", "year": 1994, "tomatometer": 91, "audienceScore": 96, "imdb": 9.3, "media": "4K Ultra HD", "rating": "R", "length": 142, "genre": "Drama", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Shawshank+Redemption" },
-            { "title": "The Dark Knight", "year": 2008, "tomatometer": 94, "audienceScore": 94, "imdb": 9.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 152, "genre": "Action", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight" },
-            { "title": "Pulp Fiction", "year": 1994, "tomatometer": 92, "audienceScore": 96, "imdb": 8.9, "media": "Blu-Ray", "rating": "R", "length": 154, "genre": "Crime", "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Pulp+Fiction" }
+        [{ "title": "10 Cloverfield Lane", "year": 2016, "tomatometer": 91, "audienceScore": 79, "imdb": 7.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 103, "genre": ["Sci-Fi", "Thriller"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=10+Cloverfield+Lane" },
+            { "title": "American Sniper", "year": 2014, "tomatometer": 34, "audienceScore": 85, "imdb": 7.3, "media": "4K Ultra HD", "rating": "R", "length": 133, "genre": ["Action", "Biography"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=American+Sniper" },
+            { "title": "Back to the Future", "year": 1985, "tomatometer": 93, "audienceScore": 95, "imdb": 8.5, "media": "4K Ultra HD", "rating": "PG", "length": 116, "genre": ["Sci-Fi", "Comedy"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Back+to+the+Future" },
+            { "title": "Batman Begins", "year": 2005, "tomatometer": 84, "audienceScore": 89, "imdb": 8.2, "media": "4K Ultra HD", "rating": "PG-13", "length": 140, "genre": ["Action", "Crime"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Batman+Begins" },
+            { "title": "Dune (2021)", "year": 2021, "tomatometer": 83, "audienceScore": 90, "imdb": 8.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 155, "genre": ["Sci-Fi", "Adventure"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Dune" },
+            { "title": "Gladiator", "year": 2000, "tomatometer": 76, "audienceScore": 86, "imdb": 8.5, "media": "DVD", "rating": "R", "length": 155, "genre": ["Action", "Drama"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Gladiator" },
+            { "title": "The Departed", "year": 2006, "tomatometer": 91, "audienceScore": 94, "imdb": 8.5, "media": "Blu-Ray", "rating": "R", "length": 151, "genre": ["Crime", "Thriller"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Departed" },
+            { "title": "The Shawshank Redemption", "year": 1994, "tomatometer": 91, "audienceScore": 96, "imdb": 9.3, "media": "4K Ultra HD", "rating": "R", "length": 142, "genre": ["Drama", "Crime"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Shawshank+Redemption" },
+            { "title": "The Dark Knight", "year": 2008, "tomatometer": 94, "audienceScore": 94, "imdb": 9.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 152, "genre": ["Action", "Crime", "Drama"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight" },
+            { "title": "Pulp Fiction", "year": 1994, "tomatometer": 92, "audienceScore": 96, "imdb": 8.9, "media": "Blu-Ray", "rating": "R", "length": 154, "genre": ["Crime", "Drama"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Pulp+Fiction" }
         ]`;
 
         function createMovieCard(movie, isListView = false) {
+            const genresString = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre || 'N/A';
             if (isListView) {
                 const listItem = document.createElement('div');
                 listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'sm:items-center', 'sm:justify-between');
@@ -456,57 +452,36 @@
                 image.classList.add('list-item-image');
                 leftSection.appendChild(image);
                 
+                const contentWrapper = document.createElement('div');
+                contentWrapper.classList.add('flex', 'flex-col', 'space-y-1', 'flex-grow');
+
                 const title = document.createElement('span');
                 title.textContent = `${movie.title} (${movie.year})`;
                 title.classList.add('list-item-title');
-                leftSection.appendChild(title);
-                
-                listItem.appendChild(leftSection);
+                contentWrapper.appendChild(title);
 
                 const detailsSection = document.createElement('div');
-                detailsSection.classList.add('list-item-details');
-                
-                const rating = document.createElement('span');
-                rating.textContent = `Rating: ${movie.rating || 'N/A'}`;
-                rating.classList.add('list-item-detail');
-                detailsSection.appendChild(rating);
-                
-                const length = document.createElement('span');
-                length.textContent = `Length: ${movie.length ? `${movie.length} min` : 'N/A'}`;
-                length.classList.add('list-item-detail');
-                detailsSection.appendChild(length);
-                
-                const genre = document.createElement('span');
-                genre.textContent = `Genre: ${movie.genre || 'N/A'}`;
-                genre.classList.add('list-item-detail');
-                detailsSection.appendChild(genre);
-                
-                const media = document.createElement('span');
-                media.textContent = `Media: ${movie.media}`;
-                media.classList.add('list-item-detail');
-                detailsSection.appendChild(media);
+                detailsSection.classList.add('flex', 'flex-wrap', 'gap-x-2', 'gap-y-1', 'text-xs', 'text-gray-500');
+                detailsSection.innerHTML = `
+                    <span>Rating: ${movie.rating || 'N/A'}</span>
+                    <span>Length: ${movie.length ? `${movie.length} min` : 'N/A'}</span>
+                    <span>Media: ${movie.media}</span>
+                    <span>Genre: ${genresString}</span>
+                `;
+                contentWrapper.appendChild(detailsSection);
+
+                leftSection.appendChild(contentWrapper);
+                listItem.appendChild(leftSection);
+
 
                 const scoresDiv = document.createElement('div');
-                scoresDiv.classList.add('list-item-scores');
-                
-                const tomatometer = document.createElement('span');
-                tomatometer.textContent = `🍅 ${movie.tomatometer}%`;
-                tomatometer.classList.add('list-item-detail');
-                scoresDiv.appendChild(tomatometer);
-                
-                const audience = document.createElement('span');
-                audience.textContent = `🍿 ${movie.audienceScore}%`;
-                audience.classList.add('list-item-detail');
-                scoresDiv.appendChild(audience);
-                
-                const imdb = document.createElement('span');
-                imdb.textContent = `⭐ ${movie.imdb}/10`;
-                imdb.classList.add('list-item-detail');
-                scoresDiv.appendChild(imdb);
-
-                detailsSection.appendChild(scoresDiv);
-                
-                listItem.appendChild(detailsSection);
+                scoresDiv.classList.add('flex', 'flex-wrap', 'gap-2', 'mt-2', 'sm:mt-0', 'sm:ml-4', 'text-sm', 'text-gray-600', 'sm:w-auto');
+                scoresDiv.innerHTML = `
+                    <span class="whitespace-nowrap">🍅 ${movie.tomatometer}%</span>
+                    <span class="whitespace-nowrap">🍿 ${movie.audienceScore}%</span>
+                    <span class="whitespace-nowrap">⭐ ${movie.imdb}/10</span>
+                `;
+                listItem.appendChild(scoresDiv);
 
                 const editButton = document.createElement('button');
                 editButton.innerHTML = `
@@ -583,7 +558,7 @@
                 detailsList.innerHTML = `
                     <li><strong>Rating:</strong> ${movie.rating || 'N/A'}</li>
                     <li><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</li>
-                    <li><strong>Genre:</strong> ${movie.genre || 'N/A'}</li>
+                    <li><strong>Genre:</strong> ${genresString}</li>
                     <li><strong>Media:</strong> ${movie.media}</li>
                 `;
                 cardBack.appendChild(detailsList);
@@ -623,6 +598,28 @@
             indicator.innerHTML = html;
         }
 
+        function populateGenreFilter(movies) {
+            const genreSelect = document.getElementById('filter-by-genre');
+            const uniqueGenres = new Set();
+            movies.forEach(movie => {
+                if (Array.isArray(movie.genre)) {
+                    movie.genre.forEach(g => uniqueGenres.add(g.trim()));
+                } else if (movie.genre) {
+                    uniqueGenres.add(movie.genre.trim());
+                }
+            });
+            
+            // Clear existing options
+            genreSelect.innerHTML = '<option value="all">All</option>';
+
+            Array.from(uniqueGenres).sort().forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre;
+                option.textContent = genre;
+                genreSelect.appendChild(option);
+            });
+        }
+
         function filterAndSortMovies() {
             const sortBy = document.getElementById('sort-by').value;
             const filterByMedia = document.getElementById('filter-by-media').value;
@@ -636,8 +633,12 @@
                 filteredMovies = filteredMovies.filter(movie => movie.media === filterByMedia);
             }
             
+            // UPDATED LOGIC FOR MULTIPLE GENRES
             if (filterByGenre !== 'all') {
-                filteredMovies = filteredMovies.filter(movie => movie.genre === filterByGenre);
+                filteredMovies = filteredMovies.filter(movie => {
+                    const genres = Array.isArray(movie.genre) ? movie.genre : [movie.genre];
+                    return genres.includes(filterByGenre);
+                });
             }
 
             if (searchQuery) {
@@ -649,6 +650,11 @@
                 if (sortBy === 'title' || sortBy === 'rating' || sortBy === 'genre') {
                     aValue = a[sortBy];
                     bValue = b[sortBy];
+                    // Handling genre as an array for sorting
+                    if (sortBy === 'genre') {
+                         aValue = Array.isArray(a.genre) ? a.genre.join(',') : a.genre;
+                         bValue = Array.isArray(b.genre) ? b.genre.join(',') : b.genre;
+                    }
                     aValue = aValue ? aValue.toLowerCase() : '';
                     bValue = bValue ? bValue.toLowerCase() : '';
                     return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
@@ -712,7 +718,7 @@
             document.getElementById('movie-year').value = movie.year;
             document.getElementById('movie-rating').value = movie.rating;
             document.getElementById('movie-length').value = movie.length;
-            document.getElementById('movie-genre').value = movie.genre;
+            document.getElementById('movie-genre').value = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre;
             document.getElementById('movie-tomatometer').value = movie.tomatometer;
             document.getElementById('movie-audience-score').value = movie.audienceScore;
             document.getElementById('movie-imdb').value = movie.imdb;
@@ -745,7 +751,8 @@
             const year = parseInt(document.getElementById('movie-year').value);
             const rating = document.getElementById('movie-rating').value;
             const length = parseInt(document.getElementById('movie-length').value) || null;
-            const genre = document.getElementById('movie-genre').value || null;
+            // UPDATED: Convert comma-separated string to array
+            const genre = document.getElementById('movie-genre').value.split(',').map(g => g.trim()).filter(g => g.length > 0);
             const tomatometer = parseInt(document.getElementById('movie-tomatometer').value) || 0;
             const audienceScore = parseInt(document.getElementById('movie-audience-score').value) || 0;
             const imdb = parseFloat(document.getElementById('movie-imdb').value) || 0;
@@ -795,10 +802,13 @@
             }
         }
 
-        // CSV helper function to escape strings
         function escapeCsv(value) {
             if (value === null || value === undefined) {
                 return '';
+            }
+            // UPDATED: Handle array values for CSV export
+            if (Array.isArray(value)) {
+                value = value.join(', ');
             }
             const stringValue = String(value);
             const escapedValue = stringValue.replace(/"/g, '""');
@@ -808,7 +818,6 @@
             return escapedValue;
         }
 
-        // NEW: Export to CSV Function
         function exportData() {
             const moviesToExport = allMovies.map(({ id, ...rest }) => rest);
             
@@ -838,7 +847,6 @@
             console.log('Export to CSV complete.');
         }
         
-        // NEW: Import from CSV Function
         async function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -858,7 +866,7 @@
                     const existingMoviesMap = new Map();
                     if (allMovies) {
                         allMovies.forEach(movie => {
-                            existingMoviesMap.set(movie.title, doc.id);
+                            existingMoviesMap.set(movie.title, movie.id);
                         });
                     }
                     
@@ -880,6 +888,9 @@
                                 movie[header] = parseInt(value) || 0;
                             } else if (header === 'imdb') {
                                 movie[header] = parseFloat(value) || 0;
+                            } else if (header === 'genre') {
+                                // UPDATED: Convert comma-separated string back to array on import
+                                movie[header] = value ? value.split(',').map(g => g.trim()) : [];
                             } else {
                                 movie[header] = value;
                             }
@@ -931,6 +942,7 @@
                             moviesFromDb.push({ id: doc.id, ...doc.data() });
                         });
                         allMovies = moviesFromDb;
+                        populateGenreFilter(allMovies); // NEW: Populate the genre filter
                         filterAndSortMovies();
                     });
                 } else {
