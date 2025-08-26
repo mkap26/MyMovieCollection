@@ -292,11 +292,9 @@
                         
                         <div class="flex-col w-full sm:w-auto">
                             <span class="text-gray-700 font-medium whitespace-nowrap mb-2 block">Filter by Genre:</span>
-                            <div id="genre-tags-container" class="flex flex-wrap gap-2 items-center">
-                                <button data-genre="all" class="tag-button active px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
-                                    All
-                                </button>
-                            </div>
+                            <select multiple id="genre-select" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto" style="height: 150px;">
+                                <option value="all" selected>All Genres</option>
+                            </select>
                         </div>
                     </div>
 
@@ -421,7 +419,7 @@
         let isAscending = true;
         let currentEditingMovieId = null;
         let currentView = 'grid';
-        let selectedGenres = []; // NEW: Array to store selected genre tags
+        let selectedGenres = [];
 
         const CSV_HEADERS = ["title", "year", "rating", "length", "genre", "tomatometer", "audienceScore", "imdb", "media", "imageUrl"];
 
@@ -442,11 +440,11 @@
             const genresString = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre || 'N/A';
             if (isListView) {
                 const listItem = document.createElement('div');
-                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'sm:items-center', 'sm:justify-between');
+                listItem.classList.add('movie-list-item', 'relative', 'group');
                 listItem.setAttribute('data-movie-id', movie.id);
 
                 const leftSection = document.createElement('div');
-                leftSection.classList.add('flex', 'items-center', 'space-x-4', 'w-full', 'sm:w-auto');
+                leftSection.classList.add('flex', 'items-start', 'space-x-4', 'w-full', 'sm:w-auto');
                 
                 const image = document.createElement('img');
                 image.src = movie.imageUrl || `https://placehold.co/50x75/e0e0e0/555555?text=No+Image`;
@@ -601,87 +599,55 @@
         }
 
         function populateGenreFilter(movies) {
-            const genreTagContainer = document.getElementById('genre-tags-container');
+            const genreSelect = document.getElementById('genre-select');
             const uniqueGenres = new Set();
             
             movies.forEach(movie => {
                 if (Array.isArray(movie.genre)) {
                     movie.genre.forEach(g => uniqueGenres.add(g.trim()));
                 } else if (movie.genre) {
-                    uniqueGenres.add(movie.genre.trim());
+                    movie.genre.split(',').forEach(g => uniqueGenres.add(g.trim()));
                 }
             });
             
-            // Clear existing options, but keep the 'All' button
-            genreTagContainer.innerHTML = `
-                <button data-genre="all" class="tag-button px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
-                    All
-                </button>
-            `;
+            const selectedValues = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
             
-            const sortedGenres = Array.from(uniqueGenres).sort();
-            sortedGenres.forEach(genre => {
+            // Clear existing options, but keep the 'All' option
+            genreSelect.innerHTML = `<option value="all">All Genres</option>`;
+
+            Array.from(uniqueGenres).sort().forEach(genre => {
                 if (genre) {
-                    const button = document.createElement('button');
-                    button.textContent = genre;
-                    button.dataset.genre = genre;
-                    button.classList.add('tag-button', 'px-3', 'py-1', 'bg-gray-200', 'text-gray-800', 'text-sm', 'font-semibold', 'rounded-full', 'shadow', 'hover:bg-gray-300', 'transition-colors', 'duration-200');
-                    genreTagContainer.appendChild(button);
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    if (selectedValues.includes(genre)) {
+                        option.selected = true;
+                    }
+                    genreSelect.appendChild(option);
                 }
             });
         }
         
-        function handleGenreTagClick(event) {
-            const clickedGenre = event.target.dataset.genre;
-            
-            if (clickedGenre === 'all') {
-                selectedGenres = [];
-                document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-gray-800');
-                });
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
-            } else {
-                const isSelected = selectedGenres.includes(clickedGenre);
-                if (isSelected) {
-                    selectedGenres = selectedGenres.filter(g => g !== clickedGenre);
-                    event.target.classList.remove('bg-blue-500', 'text-white');
-                    event.target.classList.add('bg-gray-200', 'text-gray-800');
-                } else {
-                    selectedGenres.push(clickedGenre);
-                    event.target.classList.remove('bg-gray-200', 'text-gray-800');
-                    event.target.classList.add('bg-blue-500', 'text-white');
-                    // Deselect 'All' button
-                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-blue-500', 'text-white');
-                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-gray-200', 'text-gray-800');
-                }
-                
-                if (selectedGenres.length === 0) {
-                    handleGenreTagClick({ target: { dataset: { genre: 'all' } } });
-                }
-            }
-
-            filterAndSortMovies();
-        }
-
-
         function filterAndSortMovies() {
             const sortBy = document.getElementById('sort-by').value;
             const filterByMedia = document.getElementById('filter-by-media').value;
-            const moviesContainer = document.getElementById('movies-container');
+            const genreSelect = document.getElementById('genre-select');
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
+            // Handle multi-select genre filter
+            const selectedOptions = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
+            const filteredGenres = selectedOptions.filter(g => g !== 'all');
+            
             let filteredMovies = allMovies;
             
             if (filterByMedia !== 'all') {
                 filteredMovies = filteredMovies.filter(movie => movie.media === filterByMedia);
             }
             
-            if (selectedGenres.length > 0) {
+            if (filteredGenres.length > 0) {
                 filteredMovies = filteredMovies.filter(movie => {
-                    const genres = Array.isArray(movie.genre) ? movie.genre : [movie.genre];
-                    return selectedGenres.some(selectedGenre => genres.includes(selectedGenre));
+                    const genres = Array.isArray(movie.genre) ? movie.genre : (movie.genre ? movie.genre.split(',').map(g => g.trim()) : []);
+                    return filteredGenres.some(selectedGenre => genres.includes(selectedGenre));
                 });
             }
 
@@ -711,6 +677,7 @@
                 return 0;
             });
             
+            const moviesContainer = document.getElementById('movies-container');
             moviesContainer.innerHTML = '';
             
             filteredMovies.forEach((movie) => {
@@ -794,7 +761,6 @@
             const year = parseInt(document.getElementById('movie-year').value);
             const rating = document.getElementById('movie-rating').value;
             const length = parseInt(document.getElementById('movie-length').value) || null;
-            // UPDATED: Convert comma-separated string to array
             const genre = document.getElementById('movie-genre').value.split(',').map(g => g.trim()).filter(g => g.length > 0);
             const tomatometer = parseInt(document.getElementById('movie-tomatometer').value) || 0;
             const audienceScore = parseInt(document.getElementById('movie-audience-score').value) || 0;
@@ -845,12 +811,10 @@
             }
         }
 
-        // CSV helper function to escape strings
         function escapeCsv(value) {
             if (value === null || value === undefined) {
                 return '';
             }
-            // UPDATED: Handle array values for CSV export
             if (Array.isArray(value)) {
                 value = value.join(', ');
             }
@@ -862,7 +826,6 @@
             return escapedValue;
         }
 
-        // NEW: Export to CSV Function
         function exportData() {
             const moviesToExport = allMovies.map(({ id, ...rest }) => rest);
             
@@ -892,7 +855,6 @@
             console.log('Export to CSV complete.');
         }
         
-        // NEW: Import from CSV Function
         async function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -935,7 +897,6 @@
                             } else if (header === 'imdb') {
                                 movie[header] = parseFloat(value) || 0;
                             } else if (header === 'genre') {
-                                // UPDATED: Convert comma-separated string back to array on import
                                 movie[header] = value ? value.split(',').map(g => g.trim()) : [];
                             } else {
                                 movie[header] = value;
@@ -1041,8 +1002,7 @@
             document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
             document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
             
-            // NEW: Add a click listener to the genre tag container
-            document.getElementById('genre-tags-container').addEventListener('click', handleGenreTagClick);
+            document.getElementById('genre-select').addEventListener('change', filterAndSortMovies);
 
             document.getElementById('sort-order').addEventListener('click', () => {
                 isAscending = !isAscending;
@@ -1052,16 +1012,7 @@
             document.getElementById('reset-filters').addEventListener('click', () => {
                 document.getElementById('sort-by').value = 'title';
                 document.getElementById('filter-by-media').value = 'all';
-                selectedGenres = []; // Reset selected genres
-                
-                // Visually reset genre tags
-                document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-gray-800');
-                });
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
-
+                document.getElementById('genre-select').value = 'all';
                 document.getElementById('search-input').value = '';
 
                 isAscending = true; 
