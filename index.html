@@ -83,6 +83,17 @@
         }
         .movie-card-back {
             transform: rotateY(180deg);
+            padding: 1rem; /* Adjusted padding for mobile */
+            font-size: 0.8rem; /* Adjusted font size for mobile */
+            line-height: 1.2;
+            justify-content: center;
+            overflow-y: auto; /* Allow scrolling if content is too long on small screens */
+        }
+        @media (min-width: 640px) { /* Reset for larger screens */
+            .movie-card-back {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
         }
 
         /* Specific styles for the front card layout */
