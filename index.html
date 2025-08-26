@@ -421,7 +421,7 @@
         let isAscending = true;
         let currentEditingMovieId = null;
         let currentView = 'grid';
-        let selectedGenres = [];
+        let selectedGenres = []; // NEW: Array to store selected genre tags
 
         const CSV_HEADERS = ["title", "year", "rating", "length", "genre", "tomatometer", "audienceScore", "imdb", "media", "imageUrl"];
 
@@ -442,7 +442,7 @@
             const genresString = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre || 'N/A';
             if (isListView) {
                 const listItem = document.createElement('div');
-                listItem.classList.add('movie-list-item', 'relative', 'group');
+                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'sm:items-center', 'sm:justify-between');
                 listItem.setAttribute('data-movie-id', movie.id);
 
                 const leftSection = document.createElement('div');
@@ -608,37 +608,63 @@
                 if (Array.isArray(movie.genre)) {
                     movie.genre.forEach(g => uniqueGenres.add(g.trim()));
                 } else if (movie.genre) {
-                    movie.genre.split(',').forEach(g => uniqueGenres.add(g.trim()));
+                    uniqueGenres.add(movie.genre.trim());
                 }
             });
             
             // Clear existing options, but keep the 'All' button
             genreTagContainer.innerHTML = `
-                <select multiple id="genre-select" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto">
-                    <option value="all">All Genres</option>
-                </select>
+                <button data-genre="all" class="tag-button px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
+                    All
+                </button>
             `;
-
-            const genreSelect = document.getElementById('genre-select');
             
-            Array.from(uniqueGenres).sort().forEach(genre => {
+            const sortedGenres = Array.from(uniqueGenres).sort();
+            sortedGenres.forEach(genre => {
                 if (genre) {
-                    const option = document.createElement('option');
-                    option.value = genre;
-                    option.textContent = genre;
-                    if (selectedGenres.includes(genre)) {
-                        option.selected = true;
-                    }
-                    genreSelect.appendChild(option);
+                    const button = document.createElement('button');
+                    button.textContent = genre;
+                    button.dataset.genre = genre;
+                    button.classList.add('tag-button', 'px-3', 'py-1', 'bg-gray-200', 'text-gray-800', 'text-sm', 'font-semibold', 'rounded-full', 'shadow', 'hover:bg-gray-300', 'transition-colors', 'duration-200');
+                    genreTagContainer.appendChild(button);
                 }
             });
         }
         
-        function handleGenreFilterChange(event) {
-            const options = Array.from(event.target.options);
-            selectedGenres = options.filter(option => option.selected && option.value !== 'all').map(option => option.value);
+        function handleGenreTagClick(event) {
+            const clickedGenre = event.target.dataset.genre;
+            
+            if (clickedGenre === 'all') {
+                selectedGenres = [];
+                document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+            } else {
+                const isSelected = selectedGenres.includes(clickedGenre);
+                if (isSelected) {
+                    selectedGenres = selectedGenres.filter(g => g !== clickedGenre);
+                    event.target.classList.remove('bg-blue-500', 'text-white');
+                    event.target.classList.add('bg-gray-200', 'text-gray-800');
+                } else {
+                    selectedGenres.push(clickedGenre);
+                    event.target.classList.remove('bg-gray-200', 'text-gray-800');
+                    event.target.classList.add('bg-blue-500', 'text-white');
+                    // Deselect 'All' button
+                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-blue-500', 'text-white');
+                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-gray-200', 'text-gray-800');
+                }
+                
+                if (selectedGenres.length === 0) {
+                    handleGenreTagClick({ target: { dataset: { genre: 'all' } } });
+                }
+            }
+
             filterAndSortMovies();
         }
+
 
         function filterAndSortMovies() {
             const sortBy = document.getElementById('sort-by').value;
@@ -1015,6 +1041,7 @@
             document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
             document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
             
+            // NEW: Add a click listener to the genre tag container
             document.getElementById('genre-tags-container').addEventListener('click', handleGenreTagClick);
 
             document.getElementById('sort-order').addEventListener('click', () => {
@@ -1025,14 +1052,15 @@
             document.getElementById('reset-filters').addEventListener('click', () => {
                 document.getElementById('sort-by').value = 'title';
                 document.getElementById('filter-by-media').value = 'all';
-                selectedGenres = [];
+                selectedGenres = []; // Reset selected genres
                 
-                document.querySelectorAll('.tag-button').forEach(btn => {
+                // Visually reset genre tags
+                document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
                     btn.classList.remove('bg-blue-500', 'text-white');
                     btn.classList.add('bg-gray-200', 'text-gray-800');
                 });
-                document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
 
                 document.getElementById('search-input').value = '';
 
