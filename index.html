@@ -253,17 +253,31 @@
 
         <div id="authenticated-content" style="display: none;">
             
+            <!-- SEPARATED SEARCH FIELD -->
             <div class="mb-4">
                 <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
             </div>
 
+            <!-- FILTER TOGGLE BUTTON -->
             <div class="flex justify-center mb-6">
                 <button id="toggle-filters-btn" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
                     Filter & Sort
                 </button>
             </div>
 
-            <div id="filter-menu" class="hidden">
+            <!-- HIDE/SHOW FILTER MENU -->
+            <div id="filter-menu-wrapper" class="hidden">
+                <!-- NEW GENRE MENU -->
+                <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+                    <span class="text-gray-700 font-medium whitespace-nowrap mb-2 block">Filter by Genre:</span>
+                    <div id="genre-tags-container" class="flex flex-wrap gap-2 items-center">
+                        <button data-genre="all" class="tag-button active px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
+                            All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MAIN FILTER MENU -->
                  <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -287,13 +301,6 @@
                                 <option value="4K Ultra HD">4K Ultra HD</option>
                                 <option value="Blu-Ray">Blu-Ray</option>
                                 <option value="DVD">DVD</option>
-                            </select>
-                        </div>
-                        
-                        <div class="flex-col w-full sm:w-auto">
-                            <span class="text-gray-700 font-medium whitespace-nowrap mb-2 block">Filter by Genre:</span>
-                            <select multiple id="genre-select" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto" style="height: 150px;">
-                                <option value="all" selected>All Genres</option>
                             </select>
                         </div>
                     </div>
@@ -440,7 +447,7 @@
             const genresString = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre || 'N/A';
             if (isListView) {
                 const listItem = document.createElement('div');
-                listItem.classList.add('movie-list-item', 'relative', 'group');
+                listItem.classList.add('movie-list-item', 'relative', 'group', 'p-4', 'flex', 'flex-col', 'sm:flex-row', 'sm:items-center', 'sm:justify-between');
                 listItem.setAttribute('data-movie-id', movie.id);
 
                 const leftSection = document.createElement('div');
@@ -599,7 +606,7 @@
         }
 
         function populateGenreFilter(movies) {
-            const genreSelect = document.getElementById('genre-select');
+            const genreTagContainer = document.getElementById('genre-tags-container');
             const uniqueGenres = new Set();
             
             movies.forEach(movie => {
@@ -610,44 +617,76 @@
                 }
             });
             
-            const selectedValues = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
+            // Clear existing options, but keep the 'All' button
+            genreTagContainer.innerHTML = `
+                <button data-genre="all" class="tag-button active px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
+                    All
+                </button>
+            `;
             
-            // Clear existing options, but keep the 'All' option
-            genreSelect.innerHTML = `<option value="all">All Genres</option>`;
-
-            Array.from(uniqueGenres).sort().forEach(genre => {
+            const sortedGenres = Array.from(uniqueGenres).sort();
+            sortedGenres.forEach(genre => {
                 if (genre) {
-                    const option = document.createElement('option');
-                    option.value = genre;
-                    option.textContent = genre;
-                    if (selectedValues.includes(genre)) {
-                        option.selected = true;
-                    }
-                    genreSelect.appendChild(option);
+                    const button = document.createElement('button');
+                    button.textContent = genre;
+                    button.dataset.genre = genre;
+                    button.classList.add('tag-button', 'px-3', 'py-1', 'bg-gray-200', 'text-gray-800', 'text-sm', 'font-semibold', 'rounded-full', 'shadow', 'hover:bg-gray-300', 'transition-colors', 'duration-200');
+                    genreTagContainer.appendChild(button);
                 }
             });
         }
         
+        function handleGenreTagClick(event) {
+            const clickedGenre = event.target.dataset.genre;
+            
+            if (clickedGenre === 'all') {
+                selectedGenres = [];
+                document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+            } else {
+                const isSelected = selectedGenres.includes(clickedGenre);
+                if (isSelected) {
+                    selectedGenres = selectedGenres.filter(g => g !== clickedGenre);
+                    event.target.classList.remove('bg-blue-500', 'text-white');
+                    event.target.classList.add('bg-gray-200', 'text-gray-800');
+                } else {
+                    selectedGenres.push(clickedGenre);
+                    event.target.classList.remove('bg-gray-200', 'text-gray-800');
+                    event.target.classList.add('bg-blue-500', 'text-white');
+                    // Deselect 'All' button
+                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-blue-500', 'text-white');
+                    document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-gray-200', 'text-gray-800');
+                }
+                
+                if (selectedGenres.length === 0) {
+                    handleGenreTagClick({ target: { dataset: { genre: 'all' } } });
+                }
+            }
+
+            filterAndSortMovies();
+        }
+
+
         function filterAndSortMovies() {
             const sortBy = document.getElementById('sort-by').value;
             const filterByMedia = document.getElementById('filter-by-media').value;
-            const genreSelect = document.getElementById('genre-select');
+            const moviesContainer = document.getElementById('movies-container');
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
-            // Handle multi-select genre filter
-            const selectedOptions = Array.from(genreSelect.selectedOptions).map(opt => opt.value);
-            const filteredGenres = selectedOptions.filter(g => g !== 'all');
-            
             let filteredMovies = allMovies;
             
             if (filterByMedia !== 'all') {
                 filteredMovies = filteredMovies.filter(movie => movie.media === filterByMedia);
             }
             
-            if (filteredGenres.length > 0) {
+            if (selectedGenres.length > 0) {
                 filteredMovies = filteredMovies.filter(movie => {
                     const genres = Array.isArray(movie.genre) ? movie.genre : (movie.genre ? movie.genre.split(',').map(g => g.trim()) : []);
-                    return filteredGenres.some(selectedGenre => genres.includes(selectedGenre));
+                    return selectedGenres.some(selectedGenre => genres.includes(selectedGenre));
                 });
             }
 
@@ -873,8 +912,8 @@
                     
                     const existingMoviesMap = new Map();
                     if (allMovies) {
-                        allMovies.forEach(movie => {
-                            existingMoviesMap.set(movie.title, movie.id);
+                        allMovies.forEach(doc => {
+                            existingMoviesMap.set(doc.title, doc.id);
                         });
                     }
                     
@@ -1002,7 +1041,8 @@
             document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
             document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
             
-            document.getElementById('genre-select').addEventListener('change', filterAndSortMovies);
+            // NEW: Add a click listener to the genre tag container
+            document.getElementById('genre-tags-container').addEventListener('click', handleGenreTagClick);
 
             document.getElementById('sort-order').addEventListener('click', () => {
                 isAscending = !isAscending;
@@ -1012,7 +1052,15 @@
             document.getElementById('reset-filters').addEventListener('click', () => {
                 document.getElementById('sort-by').value = 'title';
                 document.getElementById('filter-by-media').value = 'all';
-                document.getElementById('genre-select').value = 'all';
+                selectedGenres = [];
+                
+                document.querySelectorAll('.tag-button').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+
                 document.getElementById('search-input').value = '';
 
                 isAscending = true; 
@@ -1031,7 +1079,7 @@
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
             document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                document.getElementById('filter-menu').classList.toggle('hidden');
+                document.getElementById('filter-menu-wrapper').classList.toggle('hidden');
             });
 
             init();
