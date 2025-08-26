@@ -240,24 +240,15 @@
                 My Movie Collection
                 <div id="status-indicator" class="text-sm font-medium text-gray-600"></div>
             </h1>
-            
-            <div class="flex items-center space-x-4 mt-4 sm:mt-0">
-                <div id="view-options" class="flex items-center space-x-2">
-                    <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
-                    <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
-                    <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
-                </div>
-
-                <div id="user-info" class="flex items-center space-x-2" style="display: none;">
-                    <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
-                    <button id="signout-btn" class="px-3 py-1 text-sm bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200">
-                        Sign Out
-                    </button>
-                </div>
-                <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
-                    Sign In with Google
+            <div id="user-info" class="flex items-center space-x-2" style="display: none;">
+                <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
+                <button id="signout-btn" class="px-3 py-1 text-sm bg-red-500 text-white font-bold rounded-md shadow hover:bg-red-600 transition-colors duration-200">
+                    Sign Out
                 </button>
             </div>
+            <button id="login-btn" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                Sign In with Google
+            </button>
         </header>
 
         <div id="authenticated-content" style="display: none;">
@@ -307,6 +298,12 @@
                                 <option value="DVD">DVD</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
+                        <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
+                        <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
+                        <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
                     </div>
                     
                     <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
@@ -440,6 +437,9 @@
             { "title": "The Dark Knight", "year": 2008, "tomatometer": 94, "audienceScore": 94, "imdb": 9.0, "media": "4K Ultra HD", "rating": "PG-13", "length": 152, "genre": ["Action", "Crime", "Drama"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=The+Dark+Knight" },
             { "title": "Pulp Fiction", "year": 1994, "tomatometer": 92, "audienceScore": 96, "imdb": 8.9, "media": "Blu-Ray", "rating": "R", "length": 154, "genre": ["Crime", "Drama"], "imageUrl": "https://placehold.co/300x450/e0e0e0/555555?text=Pulp+Fiction" }
         ]`;
+
+        // Declare moviesContainer globally
+        let moviesContainer;
 
         function createMovieCard(movie, isListView = false) {
             const genresString = Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre || 'N/A';
@@ -689,7 +689,6 @@
         function filterAndSortMovies() {
             const sortBy = document.getElementById('sort-by').value;
             const filterByMedia = document.getElementById('filter-by-media').value;
-            const moviesContainer = document.getElementById('movies-container');
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
             let filteredMovies = allMovies;
@@ -731,7 +730,6 @@
                 return 0;
             });
             
-            const moviesContainer = document.getElementById('movies-container');
             moviesContainer.innerHTML = '';
             
             filteredMovies.forEach((movie) => {
@@ -744,7 +742,6 @@
 
         function setView(view) {
             currentView = view;
-            const moviesContainer = document.getElementById('movies-container');
             
             moviesContainer.classList.remove('grid', 'flex', 'flex-col', 'gap-6', 'space-y-4', 'grid-cols-2', 'sm:grid-cols-3', 'md:grid-cols-4', 'lg:grid-cols-5');
             
@@ -1073,7 +1070,7 @@
                     btn.classList.add('bg-gray-200', 'text-gray-800');
                 });
                 document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+                document.querySelector('[data-view="grid"]').classList.add('bg-blue-500', 'text-white');
 
                 document.getElementById('search-input').value = '';
 
