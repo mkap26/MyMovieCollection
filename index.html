@@ -81,21 +81,71 @@
             background-color: #ffffff;
             overflow: hidden; /* Ensures content doesn't bleed out */
         }
+        
         .movie-card-back {
             transform: rotateY(180deg);
-            padding: 1rem; /* Adjusted padding for mobile */
-            font-size: 0.8rem; /* Adjusted font size for mobile */
-            line-height: 1.2;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
-            overflow-y: auto; /* Allow scrolling if content is too long on small screens */
+            overflow-y: auto;
         }
+
+        .movie-card-back .back-header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+
+        .movie-card-back .back-title {
+            font-size: 1.1rem;
+            line-height: 1.2;
+            font-weight: bold;
+        }
+        
+        .movie-card-back .back-year {
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+
+        .movie-card-back .details-list,
+        .movie-card-back .scores-list {
+            font-size: 0.8rem;
+            line-height: 1.2;
+            margin-top: 0.5rem;
+        }
+        
+        .movie-card-back .scores-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Responsive adjustments for the back of the card */
         @media (min-width: 640px) { /* Reset for larger screens */
             .movie-card-back {
                 padding: 1.5rem;
+            }
+            .movie-card-back .back-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .movie-card-back .back-title {
+                font-size: 1.25rem;
+            }
+            .movie-card-back .back-year {
                 font-size: 1rem;
             }
+            .movie-card-back .details-list,
+            .movie-card-back .scores-list {
+                font-size: 0.875rem;
+                margin-top: 1rem;
+            }
         }
-
+        
         /* Specific styles for the front card layout */
         .movie-card-front {
             padding: 0;
@@ -510,22 +560,22 @@
 
 
                 const cardBack = document.createElement('div');
-                cardBack.classList.add('movie-card-back', 'p-6', 'flex', 'flex-col', 'space-y-4');
+                cardBack.classList.add('movie-card-back');
                 
                 const backHeader = document.createElement('div');
-                backHeader.classList.add('flex', 'justify-between', 'items-start', 'gap-4');
+                backHeader.classList.add('back-header');
                 const backTitle = document.createElement('h2');
-                backTitle.classList.add('text-xl', 'font-bold', 'text-gray-900');
+                backTitle.classList.add('back-title');
                 backTitle.textContent = movie.title;
                 const backYear = document.createElement('span');
-                backYear.classList.add('text-lg', 'font-medium', 'text-gray-500');
+                backYear.classList.add('back-year');
                 backYear.textContent = `(${movie.year})`;
                 backHeader.appendChild(backTitle);
                 backHeader.appendChild(backYear);
                 cardBack.appendChild(backHeader);
 
                 const detailsList = document.createElement('ul');
-                detailsList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
+                detailsList.classList.add('details-list');
                 detailsList.innerHTML = `
                     <li><strong>Rating:</strong> ${movie.rating || 'N/A'}</li>
                     <li><strong>Length:</strong> ${movie.length ? `${movie.length} min` : 'N/A'}</li>
@@ -535,7 +585,7 @@
                 cardBack.appendChild(detailsList);
                 
                 const scoresList = document.createElement('ul');
-                scoresList.classList.add('text-sm', 'text-gray-700', 'space-y-1');
+                scoresList.classList.add('scores-list');
                 scoresList.innerHTML = `
                     <li>🍅 <strong>Tomatometer:</strong> ${movie.tomatometer}%</li>
                     <li>🍿 <strong>Audience:</strong> ${movie.audienceScore}%</li>
