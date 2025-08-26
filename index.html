@@ -253,21 +253,17 @@
 
         <div id="authenticated-content" style="display: none;">
             
-            <!-- SEPARATED SEARCH FIELD -->
             <div class="mb-4">
                 <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
             </div>
 
-            <!-- FILTER TOGGLE BUTTON -->
             <div class="flex justify-center mb-6">
                 <button id="toggle-filters-btn" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
                     Filter & Sort
                 </button>
             </div>
 
-            <!-- HIDE/SHOW FILTER MENU -->
             <div id="filter-menu-wrapper" class="hidden">
-                <!-- NEW GENRE MENU -->
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
                     <span class="text-gray-700 font-medium whitespace-nowrap mb-2 block">Filter by Genre:</span>
                     <div id="genre-tags-container" class="flex flex-wrap gap-2 items-center">
@@ -277,8 +273,7 @@
                     </div>
                 </div>
 
-                <!-- MAIN FILTER MENU -->
-                 <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
+                <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
                     <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
                         <div class="flex items-center space-x-2 w-full sm:w-auto">
                             <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
@@ -617,20 +612,31 @@
                 }
             });
             
-            // Clear existing options, but keep the 'All' button
+            const selectedValues = selectedGenres;
+            
             genreTagContainer.innerHTML = `
-                <button data-genre="all" class="tag-button active px-3 py-1 bg-blue-500 text-white text-sm font-semibold rounded-full shadow hover:bg-blue-600 transition-colors duration-200">
+                <button data-genre="all" class="tag-button px-3 py-1 bg-gray-200 text-gray-800 text-sm font-semibold rounded-full shadow hover:bg-gray-300 transition-colors duration-200">
                     All
                 </button>
             `;
-            
+            if (selectedGenres.length === 0) {
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.replace('bg-gray-200', 'bg-blue-500');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.replace('text-gray-800', 'text-white');
+            }
+
             const sortedGenres = Array.from(uniqueGenres).sort();
             sortedGenres.forEach(genre => {
                 if (genre) {
                     const button = document.createElement('button');
                     button.textContent = genre;
                     button.dataset.genre = genre;
-                    button.classList.add('tag-button', 'px-3', 'py-1', 'bg-gray-200', 'text-gray-800', 'text-sm', 'font-semibold', 'rounded-full', 'shadow', 'hover:bg-gray-300', 'transition-colors', 'duration-200');
+                    button.classList.add('tag-button', 'px-3', 'py-1', 'text-sm', 'font-semibold', 'rounded-full', 'shadow', 'hover:bg-gray-300', 'transition-colors', 'duration-200');
+                    if (selectedValues.includes(genre)) {
+                         button.classList.add('bg-blue-500', 'text-white');
+                         button.classList.remove('bg-gray-200', 'text-gray-800');
+                    } else {
+                        button.classList.add('bg-gray-200', 'text-gray-800');
+                    }
                     genreTagContainer.appendChild(button);
                 }
             });
@@ -641,12 +647,13 @@
             
             if (clickedGenre === 'all') {
                 selectedGenres = [];
+                // Highlight the 'All' button
                 document.querySelectorAll('#genre-tags-container .tag-button').forEach(btn => {
                     btn.classList.remove('bg-blue-500', 'text-white');
                     btn.classList.add('bg-gray-200', 'text-gray-800');
                 });
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.replace('bg-gray-200', 'bg-blue-500');
+                document.querySelector('#genre-tags-container button[data-genre="all"]').classList.replace('text-gray-800', 'text-white');
             } else {
                 const isSelected = selectedGenres.includes(clickedGenre);
                 if (isSelected) {
@@ -657,7 +664,7 @@
                     selectedGenres.push(clickedGenre);
                     event.target.classList.remove('bg-gray-200', 'text-gray-800');
                     event.target.classList.add('bg-blue-500', 'text-white');
-                    // Deselect 'All' button
+                    // Deselect 'All' button if a new genre is selected
                     document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-blue-500', 'text-white');
                     document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-gray-200', 'text-gray-800');
                 }
@@ -912,8 +919,8 @@
                     
                     const existingMoviesMap = new Map();
                     if (allMovies) {
-                        allMovies.forEach(doc => {
-                            existingMoviesMap.set(doc.title, doc.id);
+                        allMovies.forEach(movie => {
+                            existingMoviesMap.set(movie.title, movie.id);
                         });
                     }
                     
@@ -1041,8 +1048,7 @@
             document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
             document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
             
-            // NEW: Add a click listener to the genre tag container
-            document.getElementById('genre-tags-container').addEventListener('click', handleGenreTagClick);
+            document.getElementById('genre-select').addEventListener('change', filterAndSortMovies);
 
             document.getElementById('sort-order').addEventListener('click', () => {
                 isAscending = !isAscending;
@@ -1052,15 +1058,7 @@
             document.getElementById('reset-filters').addEventListener('click', () => {
                 document.getElementById('sort-by').value = 'title';
                 document.getElementById('filter-by-media').value = 'all';
-                selectedGenres = [];
-                
-                document.querySelectorAll('.tag-button').forEach(btn => {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-gray-800');
-                });
-                document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
-                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
-
+                document.getElementById('genre-select').value = 'all';
                 document.getElementById('search-input').value = '';
 
                 isAscending = true; 
@@ -1079,7 +1077,7 @@
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
             document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                document.getElementById('filter-menu-wrapper').classList.toggle('hidden');
+                document.getElementById('filter-menu').classList.toggle('hidden');
             });
 
             init();
