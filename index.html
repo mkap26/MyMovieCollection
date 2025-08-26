@@ -176,13 +176,14 @@
         /* Specific styles for the List View */
         .movie-list-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* Aligned items to the top for a cleaner look */
             background-color: #ffffff;
             padding: 1rem;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             transition: box-shadow 0.3s ease;
             position: relative;
+            gap: 1rem; /* Added gap for better spacing */
         }
         .movie-list-item:hover {
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -190,23 +191,25 @@
 
         /* Responsive adjustments for list view content */
         .list-item-image {
-            width: 50px; /* Small thumbnail size */
-            height: 75px;
+            width: 60px; /* Increased thumbnail size for better visibility */
+            height: 90px;
             object-fit: cover;
             border-radius: 0.25rem;
             flex-shrink: 0;
         }
-        .list-item-details {
+        .list-item-content {
             flex-grow: 1;
+        }
+        .list-item-details {
             display: flex;
             flex-wrap: wrap; /* Allows details to wrap on small screens */
             gap: 0.5rem;
-            margin-left: 1rem;
         }
         .list-item-title {
             font-weight: 600;
             color: #1f2937;
-            width: 100%; /* Title always takes full width on mobile */
+            width: 100%;
+            margin-bottom: 0.25rem;
         }
         .list-item-detail {
             font-size: 0.75rem;
@@ -215,6 +218,7 @@
         }
         .list-item-scores {
             display: flex;
+            flex-wrap: wrap; /* Scores also wrap */
             gap: 0.5rem;
         }
         @media (min-width: 640px) {
