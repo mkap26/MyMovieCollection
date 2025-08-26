@@ -664,7 +664,7 @@
                     selectedGenres.push(clickedGenre);
                     event.target.classList.remove('bg-gray-200', 'text-gray-800');
                     event.target.classList.add('bg-blue-500', 'text-white');
-                    // Deselect 'All' button if a new genre is selected
+                    // Deselect 'All' button
                     document.querySelector('#genre-tags-container button[data-genre="all"]').classList.remove('bg-blue-500', 'text-white');
                     document.querySelector('#genre-tags-container button[data-genre="all"]').classList.add('bg-gray-200', 'text-gray-800');
                 }
@@ -1048,7 +1048,7 @@
             document.getElementById('sort-by').addEventListener('change', filterAndSortMovies);
             document.getElementById('filter-by-media').addEventListener('change', filterAndSortMovies);
             
-            document.getElementById('genre-select').addEventListener('change', filterAndSortMovies);
+            document.getElementById('genre-tags-container').addEventListener('click', handleGenreTagClick);
 
             document.getElementById('sort-order').addEventListener('click', () => {
                 isAscending = !isAscending;
@@ -1058,7 +1058,15 @@
             document.getElementById('reset-filters').addEventListener('click', () => {
                 document.getElementById('sort-by').value = 'title';
                 document.getElementById('filter-by-media').value = 'all';
-                document.getElementById('genre-select').value = 'all';
+                selectedGenres = [];
+                
+                document.querySelectorAll('.tag-button').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                document.querySelector('[data-genre="all"]').classList.remove('bg-gray-200', 'text-gray-800');
+                document.querySelector('[data-genre="all"]').classList.add('bg-blue-500', 'text-white');
+
                 document.getElementById('search-input').value = '';
 
                 isAscending = true; 
@@ -1077,7 +1085,7 @@
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
             document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                document.getElementById('filter-menu').classList.toggle('hidden');
+                document.getElementById('filter-menu-wrapper').classList.toggle('hidden');
             });
 
             init();
