@@ -174,7 +174,7 @@
         <header class="flex flex-col sm:flex-row justify-between items-center mb-6">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 flex items-center gap-4">
                 My Movie Collection
-                <span id="status-indicator" class="text-sm font-medium text-gray-600"></span>
+                <div id="status-indicator" class="text-sm font-medium text-gray-600"></div>
             </h1>
             <div id="user-info" class="flex items-center space-x-2" style="display: none;">
                 <span id="user-email" class="text-sm text-gray-600 font-medium hidden sm:block"></span>
@@ -193,67 +193,75 @@
                 <input type="text" id="search-input" placeholder="Search movies..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2">
             </div>
 
-            <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
-                <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
-                        <select id="sort-by" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                            <option value="title" selected>Title</option>
-                            <option value="year">Year</option>
-                            <option value="rating">Rating</option>
-                            <option value="length">Length</option>
-                            <option value="genre">Genre</option>
-                            <option value="tomatometer">Tomatometer</option>
-                            <option value="audienceScore">Audience Score</option>
-                            <option value="imdb">IMDb Score</option>
-                        </select>
-                    </div>
-                    
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
-                        <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                            <option value="all">All</option>
-                            <option value="4K Ultra HD">4K Ultra HD</option>
-                            <option value="Blu-Ray">Blu-Ray</option>
-                            <option value="DVD">DVD</option>
-                        </select>
-                    </div>
-                    
-                    <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filter-by-genre" class="text-gray-700 font-medium whitespace-nowrap">Filter by Genre:</label>
-                        <select id="filter-by-genre" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                            <option value="all">All</option>
-                            <option value="Sci-Fi">Sci-Fi</option>
-                            <option value="Action">Action</option>
-                            <option value="Drama">Drama</option>
-                            <option value="Crime">Crime</option>
-                            <option value="Not Rated">Not Rated</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="flex justify-center mb-6">
+                <button id="toggle-filters-btn" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
+                    Filter & Sort
+                </button>
+            </div>
 
-                <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
-                    <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
-                    <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
-                    <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
-                    <button id="add-movie-btn" class="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">
-                        Add New Movie
-                    </button>
-                    <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
-                        <span id="sort-order-text">Sort Ascending</span>
-                    </button>
-                    <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
-                        Reset
-                    </button>
-                    <button id="import-btn" class="w-full sm:w-auto px-4 py-2 bg-purple-500 text-white font-semibold rounded-md shadow hover:bg-purple-600 transition-colors duration-200">
-                        Import
-                    </button>
-                    <button id="export-btn" class="w-full sm:w-auto px-4 py-2 bg-indigo-500 text-white font-semibold rounded-md shadow hover:bg-indigo-600 transition-colors duration-200">
-                        Export
-                    </button>
+            <div id="filter-menu" class="hidden">
+                 <div class="flex flex-col lg:flex-row justify-between items-center bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6 gap-4">
+                    <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                        <div class="flex items-center space-x-2 w-full sm:w-auto">
+                            <label for="sort-by" class="text-gray-700 font-medium whitespace-nowrap">Sort By:</label>
+                            <select id="sort-by" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                <option value="title" selected>Title</option>
+                                <option value="year">Year</option>
+                                <option value="rating">Rating</option>
+                                <option value="length">Length</option>
+                                <option value="genre">Genre</option>
+                                <option value="tomatometer">Tomatometer</option>
+                                <option value="audienceScore">Audience Score</option>
+                                <option value="imdb">IMDb Score</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 w-full sm:w-auto">
+                            <label for="filter-by-media" class="text-gray-700 font-medium whitespace-nowrap">Filter by Media:</label>
+                            <select id="filter-by-media" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                <option value="all">All</option>
+                                <option value="4K Ultra HD">4K Ultra HD</option>
+                                <option value="Blu-Ray">Blu-Ray</option>
+                                <option value="DVD">DVD</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 w-full sm:w-auto">
+                            <label for="filter-by-genre" class="text-gray-700 font-medium whitespace-nowrap">Filter by Genre:</label>
+                            <select id="filter-by-genre" class="p-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                <option value="all">All</option>
+                                <option value="Sci-Fi">Sci-Fi</option>
+                                <option value="Action">Action</option>
+                                <option value="Drama">Drama</option>
+                                <option value="Crime">Crime</option>
+                                <option value="Not Rated">Not Rated</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full sm:w-auto mt-4 sm:mt-0">
+                        <span class="text-gray-700 font-medium whitespace-nowrap">View:</span>
+                        <button data-view="list" class="view-btn px-3 py-1 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">List</button>
+                        <button data-view="grid" class="view-btn px-3 py-1 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Grid</button>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto mt-4 lg:mt-0">
+                        <button id="add-movie-btn" class="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-bold rounded-md shadow hover:bg-green-600 transition-colors duration-200">
+                            Add New Movie
+                        </button>
+                        <button id="sort-order" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">
+                            <span id="sort-order-text">Sort Ascending</span>
+                        </button>
+                        <button id="reset-filters" class="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md shadow hover:bg-gray-300 transition-colors duration-200">
+                            Reset
+                        </button>
+                        <button id="import-btn" class="w-full sm:w-auto px-4 py-2 bg-purple-500 text-white font-semibold rounded-md shadow hover:bg-purple-600 transition-colors duration-200">
+                            Import
+                        </button>
+                        <button id="export-btn" class="w-full sm:w-auto px-4 py-2 bg-indigo-500 text-white font-semibold rounded-md shadow hover:bg-indigo-600 transition-colors duration-200">
+                            Export
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -544,11 +552,6 @@
                 return;
             }
             
-            const counts = movies.reduce((acc, movie) => {
-                acc[movie.media] = (acc[movie.media] || 0) + 1;
-                return acc;
-            }, {});
-            
             const total = movies.length;
             let html = `Total Movies: <strong>${total}</strong>`;
             
@@ -790,7 +793,7 @@
                     const existingMoviesMap = new Map();
                     if (allMovies) {
                         allMovies.forEach(movie => {
-                            existingMoviesMap.set(movie.title, movie.id);
+                            existingMoviesMap.set(movie.title, doc.id);
                         });
                     }
                     
@@ -817,14 +820,11 @@
                             }
                         });
                         
-                        // Check if a movie with this title already exists
                         const existingId = existingMoviesMap.get(movie.title);
                         if (existingId) {
-                            // Update existing movie
                             await setDoc(doc(moviesCollectionRef, existingId), movie);
                             updatedCount++;
                         } else {
-                            // Add new movie
                             await addDoc(moviesCollectionRef, movie);
                             importedCount++;
                         }
@@ -847,9 +847,7 @@
         function init() {
             onAuthStateChanged(auth, async (user) => {
                 const loginButton = document.getElementById('login-btn');
-                const signOutButton = document.getElementById('signout-btn');
                 const authenticatedContent = document.getElementById('authenticated-content');
-                const statusIndicator = document.getElementById('status-indicator');
                 const userInfoDiv = document.getElementById('user-info');
                 const userEmailSpan = document.getElementById('user-email');
 
@@ -875,7 +873,6 @@
                     loginButton.style.display = 'block';
                     userInfoDiv.style.display = 'none';
                     authenticatedContent.style.display = 'none';
-                    statusIndicator.innerHTML = 'Please sign in to view your collection.';
                     
                     allMovies = [];
                     filterAndSortMovies();
@@ -947,6 +944,10 @@
             });
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
+            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
+                document.getElementById('filter-menu').classList.toggle('hidden');
+            });
+
             init();
         });
     </script>
