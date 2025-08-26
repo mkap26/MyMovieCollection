@@ -382,7 +382,10 @@
                 </div>
                 <div>
                     <label for="movie-image-url" class="block text-sm font-medium text-gray-700">Image URL (Optional)</label>
-                    <input type="url" id="movie-image-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <div class="flex items-center space-x-2">
+                        <input type="url" id="movie-image-url" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <button type="button" id="fetch-poster-btn" class="mt-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition-colors duration-200">Fetch Poster</button>
+                    </div>
                 </div>
                 <div class="flex justify-between items-center mt-6">
                     <button type="button" id="delete-movie-btn" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow hover:bg-red-600 transition-colors duration-200" style="display: none;">Delete Movie</button>
@@ -976,13 +979,18 @@
             reader.readAsText(file);
         }
 
-        // TMDb API Key
         const TMDB_API_KEY = "fc6ed418c8fe9cfa7795e51dc78c015b";
         const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
         
-        // NEW: Fetch movie poster from TMDb
-        async function fetchMoviePoster(title) {
-            if (!title) return null;
+        async function fetchMoviePoster() {
+            const titleInput = document.getElementById('movie-title');
+            const imageUrlInput = document.getElementById('movie-image-url');
+            const title = titleInput.value;
+            if (!title) {
+                alert("Please enter a movie title first.");
+                return;
+            }
+
             const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`;
             
             try {
@@ -995,23 +1003,27 @@
                 if (data.results && data.results.length > 0) {
                     const posterPath = data.results[0].poster_path;
                     if (posterPath) {
-                        return `${TMDB_IMAGE_BASE_URL}${posterPath}`;
+                        imageUrlInput.value = `${TMDB_IMAGE_BASE_URL}${posterPath}`;
+                    } else {
+                        alert("Could not find a poster for that movie. Please add a URL manually.");
                     }
+                } else {
+                    alert("No search results found for that movie. Please add a URL manually.");
                 }
-                return null;
             } catch (error) {
                 console.error("Error fetching movie poster:", error);
-                return null;
+                alert("An error occurred while fetching the poster. Please try again or add a URL manually.");
             }
         }
-        
+
         function init() {
             onAuthStateChanged(auth, async (user) => {
                 const loginButton = document.getElementById('login-btn');
                 const authenticatedContent = document.getElementById('authenticated-content');
                 const userInfoDiv = document.getElementById('user-info');
                 const userEmailSpan = document.getElementById('user-email');
-
+                const filterMenuWrapper = document.getElementById('filter-menu-wrapper');
+                
                 if (user) {
                     console.log("User is authenticated:", user.uid);
                     loginButton.style.display = 'none';
@@ -1037,6 +1049,10 @@
                     authenticatedContent.style.display = 'none';
                     
                     allMovies = [];
+                    // Hide filter menu if user signs out
+                    if (filterMenuWrapper) {
+                        filterMenuWrapper.classList.add('hidden');
+                    }
                     filterAndSortMovies();
                 }
             });
@@ -1048,19 +1064,7 @@
             // NEW: Event listener for the new fetch button in the modal
             const fetchPosterBtn = document.getElementById('fetch-poster-btn');
             if (fetchPosterBtn) {
-                 fetchPosterBtn.addEventListener('click', async () => {
-                    const titleInput = document.getElementById('movie-title');
-                    const imageUrlInput = document.getElementById('movie-image-url');
-                    const title = titleInput.value;
-                    if (title) {
-                        const posterUrl = await fetchMoviePoster(title);
-                        if (posterUrl) {
-                            imageUrlInput.value = posterUrl;
-                        } else {
-                            alert("Could not find a poster for that movie.");
-                        }
-                    }
-                });
+                 fetchPosterBtn.addEventListener('click', fetchMoviePoster);
             }
 
             document.getElementById('add-movie-btn').addEventListener('click', openModalForAdd);
@@ -1136,9 +1140,12 @@
             });
             document.getElementById('search-input').addEventListener('keyup', filterAndSortMovies);
             
-            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                document.getElementById('filter-menu-wrapper').classList.toggle('hidden');
-            });
+            const filterMenuWrapper = document.getElementById('filter-menu-wrapper');
+            if (filterMenuWrapper) {
+                 document.getElementById('toggle-filters-btn').addEventListener('click', () => {
+                    filterMenuWrapper.classList.toggle('hidden');
+                 });
+            }
 
             init();
         });
